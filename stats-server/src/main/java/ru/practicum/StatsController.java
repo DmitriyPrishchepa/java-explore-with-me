@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dtos.events.EndpointHit;
-import ru.practicum.dtos.events.ViewStats;
+import ru.practicum.dtos.events.ViewStatsResponse;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ public class StatsController {
     }
 
     @GetMapping("/stats")
-    public List<ViewStats> getStats(
+    public List<ViewStatsResponse> getStats(
             @RequestParam String start,
             @RequestParam String end,
             @RequestParam(required = false) List<String> uris,

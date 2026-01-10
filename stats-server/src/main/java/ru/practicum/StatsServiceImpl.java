@@ -4,10 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.dtos.events.EndpointHit;
 import ru.practicum.dtos.events.ViewStats;
+import ru.practicum.dtos.events.ViewStatsResponse;
+import ru.practicum.mapper.ViewStatsMapper;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +24,7 @@ public class StatsServiceImpl implements StatsService {
     }
 
     @Override
-    public List<ViewStats> getViewStats(String start, String end, List<String> uris, boolean unique) {
+    public List<ViewStatsResponse> getViewStats(String start, String end, List<String> uris, boolean unique) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String startDate = formatter.format(LocalDateTime.parse(start, formatter));
         String endDate = formatter.format(LocalDateTime.parse(end, formatter));
@@ -49,6 +52,8 @@ public class StatsServiceImpl implements StatsService {
             viewStatsMap.get(key).setHits(viewStatsMap.get(key).getHits() + 1);
         }
 
-        return new ArrayList<>(viewStatsMap.values());
+        return viewStatsMap.values().stream()
+                .map(ViewStatsMapper::map)
+                .collect(Collectors.toList());
     }
 }

@@ -10,7 +10,7 @@ import org.mockito.quality.Strictness;
 import ru.practicum.StatsRepository;
 import ru.practicum.StatsServiceImpl;
 import ru.practicum.dtos.events.EndpointHit;
-import ru.practicum.dtos.events.ViewStats;
+import ru.practicum.dtos.events.ViewStatsResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,8 +61,13 @@ public class StatsServiceImplTest {
 
         when(endpointHitRepo.findWithSort(anyString(), anyString())).thenReturn(endpointHits);
 
-        List<ViewStats> viewStats = statsService.getViewStats("2022-09-05 00:00:00", "2022-09-07 23:59:59", null, false);
+        List<ViewStatsResponse> viewStats = statsService.getViewStats("2022-09-05 00:00:00", "2022-09-07 23:59:59", null, false);
 
         assertEquals(1, viewStats.size());
+
+        ViewStatsResponse statsResponse = viewStats.getFirst();
+        assertEquals("ewm-main-service", statsResponse.getApp());
+        assertEquals("/events/1", statsResponse.getUri());
+        assertEquals(1L, statsResponse.getHits());
     }
 }

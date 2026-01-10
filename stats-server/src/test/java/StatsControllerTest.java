@@ -13,10 +13,12 @@ import ru.practicum.StatsController;
 import ru.practicum.StatsService;
 import ru.practicum.dtos.events.EndpointHit;
 import ru.practicum.dtos.events.ViewStats;
+import ru.practicum.mapper.ViewStatsMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
@@ -73,8 +75,11 @@ public class StatsControllerTest {
         );
         viewStatsList.add(viewStats);
 
+        // Изменяем мокинг, чтобы он возвращал список ViewStatsResponse вместо ViewStats
         when(statsService.getViewStats(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyBoolean()))
-                .thenReturn(viewStatsList);
+                .thenReturn(viewStatsList.stream()
+                        .map(ViewStatsMapper::map)
+                        .collect(Collectors.toList()));
 
         mvc.perform(get("/stats")
                         .param("start", "2022-01-01")

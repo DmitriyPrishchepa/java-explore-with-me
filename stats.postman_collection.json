@@ -1,0 +1,163 @@
+{
+	"info": {
+		"_postman_id": "3ac2bc32-ac11-484f-96ac-2c0efa8f0773",
+		"name": "stats",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18815589"
+	},
+	"item": [
+		{
+			"name": "add hit",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// описываем отдельный тест-кейс и перечисляем проверяемые утверждения\r",
+							"pm.test(\"Status code is 200 or 201\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200,201]);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\": 1,\r\n    \"app\": \"ewm-main-service\",\r\n    \"uri\": \"/events/1\",\r\n    \"ip\": \"192.163.0.1\",\r\n    \"timestamp\": \"2023-01-01 11:00:23\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/hit",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"hit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get view stats",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"User requests amount\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"    pm.expect(jsonData.length, 'List length must be 1').to.eql(1);\r",
+							"});\r",
+							"\r",
+							"var app = pm.collectionVariables.get('app');\r",
+							"var uri = pm.collectionVariables.get('uri');\r",
+							"var hits = pm.collectionVariables.get('hits');\r",
+							"\r",
+							"pm.test(\"Test viewstats 'app' field\", function () {\r",
+							"    pm.expect(jsonData[0]).to.have.property('app');\r",
+							"    pm.expect(jsonData[0].app, '\"app\" must be ${app}').to.eql(app);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Test viewstats 'uri' field\", function () {\r",
+							"    pm.expect(jsonData[0]).to.have.property('uri');\r",
+							"    pm.expect(jsonData[0].uri, '\"uri\" must be ${uri}').to.eql(uri);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Test viewstats 'hits' field\", function () {\r",
+							"    pm.expect(jsonData[0]).to.have.property('hits');\r",
+							"    pm.expect(jsonData[0].hits, '\"hits\" must be ${hits}').to.eql(Number(hits));\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/stats?start=2022-12-12%2000:00:00&end=2023-12-12%2023:59:59",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"stats"
+					],
+					"query": [
+						{
+							"key": "start",
+							"value": "2022-12-12%2000:00:00"
+						},
+						{
+							"key": "end",
+							"value": "2023-12-12%2023:59:59"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": ""
+		},
+		{
+			"key": "app",
+			"value": ""
+		},
+		{
+			"key": "uri",
+			"value": ""
+		},
+		{
+			"key": "hits",
+			"value": ""
+		}
+	]
+}
