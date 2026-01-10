@@ -50,6 +50,5 @@ public class StatsServiceImpl implements StatsService {
         }
 
         return new ArrayList<>(viewStatsMap.values());
-
     }
 }
