@@ -1,41 +1,55 @@
 package ru.practicum;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.dtos.events.EndpointHit;
 import ru.practicum.dtos.events.ViewStats;
 
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class StatsServiceImpl implements StatsService {
 
-    private final StatsRepositoryEndpointHit statsRepositoryEndpointHit;
-    private final StatsRepositoryViewStats statsRepositoryViewStats;
+    private final StatsRepository statsRepository;
 
     @Override
     public void addEndpointHit(EndpointHit endpointHit) {
-        statsRepositoryEndpointHit.save(endpointHit);
+        statsRepository.save(endpointHit);
     }
 
     @Override
     public List<ViewStats> getViewStats(String start, String end, List<String> uris, boolean unique) {
-        Sort sort = Sort.by(Sort.Direction.ASC, "start")
-                .and(Sort.by(Sort.Direction.ASC, "end"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String startDate = formatter.format(LocalDateTime.parse(start, formatter));
+        String endDate = formatter.format(LocalDateTime.parse(end, formatter));
+
+        List<EndpointHit> endpointHits = statsRepository.findWithSort(startDate, endDate);
 
         if (uris != null && !uris.isEmpty()) {
-            sort = sort.and(Sort.by(Sort.Direction.ASC, "uri"));
+            endpointHits = endpointHits.stream()
+                    .filter(endpointHit -> uris.contains(endpointHit.getUri()))
+                    .toList();
         }
 
-        PageRequest pageRequest = PageRequest.of(
-                0,
-                Integer.MAX_VALUE,
-                sort
-        );
 
-        return statsRepositoryViewStats.findAll(pageRequest).getContent();
+        if (unique) {
+            endpointHits = new ArrayList<>(new HashSet<>(endpointHits));
+        }
+
+        Map<String, ViewStats> viewStatsMap = new HashMap<>();
+
+        for (EndpointHit hit : endpointHits) {
+            String key = hit.getApp() + "-" + hit.getUri();
+            if (!viewStatsMap.containsKey(key)) {
+                viewStatsMap.put(key, new ViewStats(hit.getApp(), hit.getUri(), 0));
+            }
+            viewStatsMap.get(key).setHits(viewStatsMap.get(key).getHits() + 1);
+        }
+
+        return new ArrayList<>(viewStatsMap.values());
+
     }
 }

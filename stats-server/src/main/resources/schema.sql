@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS endpoint_hits (
     app VARCHAR(255) NOT NULL,
     uri VARCHAR(255) NOT NULL,
     ip VARCHAR(45) NOT NULL,
-    timestamp TIMESTAMP
+    timestamp VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS view_stats (

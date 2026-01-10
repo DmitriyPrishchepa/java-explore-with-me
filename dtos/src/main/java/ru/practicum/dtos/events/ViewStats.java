@@ -21,4 +21,10 @@ public class ViewStats {
     private String app; // Название сервиса
     private String uri; // URI сервиса
     private long hits; // Количество просмотров
+
+    public ViewStats(String app, String uri, int hits) {
+        this.app = app;
+        this.uri = uri;
+        this.hits = hits;
+    }
 }
