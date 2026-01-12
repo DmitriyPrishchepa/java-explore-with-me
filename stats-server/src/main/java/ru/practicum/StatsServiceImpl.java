@@ -2,6 +2,7 @@ package ru.practicum;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dtos.events.EndpointHit;
 import ru.practicum.dtos.events.ViewStats;
 import ru.practicum.dtos.events.ViewStatsResponse;
@@ -18,11 +19,13 @@ public class StatsServiceImpl implements StatsService {
 
     private final StatsRepository statsRepository;
 
+    @Transactional
     @Override
     public void addEndpointHit(EndpointHit endpointHit) {
         statsRepository.save(endpointHit);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ViewStatsResponse> getViewStats(String start, String end, List<String> uris, boolean unique) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
