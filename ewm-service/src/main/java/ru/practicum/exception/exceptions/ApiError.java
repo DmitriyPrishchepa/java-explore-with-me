@@ -7,12 +7,13 @@ import java.time.LocalDateTime;
 
 @Getter
 public class ApiError extends RuntimeException {
-    private HttpStatus status = HttpStatus.BAD_REQUEST;
+    private HttpStatus status;
     private String reason;
     private String message;
     private LocalDateTime timestamp;
 
-    public ApiError(String reason, String message) {
+    public ApiError(HttpStatus status, String reason, String message) {
+        this.status = status;
         this.reason = reason;
         this.message = message;
         this.timestamp = LocalDateTime.now();

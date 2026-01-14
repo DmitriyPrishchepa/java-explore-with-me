@@ -68,6 +68,7 @@ public class UserServiceImlTest {
         Mockito.when(userMapper.mapToDto(Mockito.eq(mockedUser)))
                 .thenReturn(userDto);
 
+        Mockito.when(repository.findByEmail(Mockito.anyString())).thenReturn(null);
         Mockito.when(repository.save(Mockito.any(User.class))).thenReturn(mockedUser);
 
         UserDto returnedUser = impl.addUser(request);
@@ -93,6 +94,8 @@ public class UserServiceImlTest {
     void deleteByIdTest() {
 
         impl.addUser(request);
+
+        Mockito.when(repository.existsById(Mockito.anyLong())).thenReturn(true);
 
         impl.deleteUser(1L);
 

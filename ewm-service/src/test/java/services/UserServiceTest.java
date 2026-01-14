@@ -8,6 +8,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.http.HttpStatus;
 import ru.practicum.admin_api.users.UserService;
 import ru.practicum.admin_api.users.model.NewUserRequest;
 import ru.practicum.admin_api.users.model.User;
@@ -71,7 +72,7 @@ public class UserServiceTest {
         request.setEmail("Email");
 
         Mockito.when(service.addUser(Mockito.any(NewUserRequest.class)))
-                .thenThrow(new ApiError("Incorrectly made request.", "Field: name. Error: must not be blank. Value: null"));
+                .thenThrow(new ApiError(HttpStatus.BAD_REQUEST, "Incorrectly made request.", "Field: name. Error: must not be blank. Value: null"));
 
         try {
             service.addUser(request);

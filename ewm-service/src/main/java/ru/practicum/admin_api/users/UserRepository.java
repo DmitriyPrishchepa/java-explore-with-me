@@ -8,4 +8,6 @@ import ru.practicum.admin_api.users.model.User;
 public interface UserRepository extends JpaRepository<User, Long> {
     @Override
     Page<User> findAll(Pageable pageable);
+
+    User findByEmail(String email);
 }
