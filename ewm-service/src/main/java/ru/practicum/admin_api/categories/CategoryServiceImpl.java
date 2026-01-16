@@ -41,7 +41,6 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteCategory(long categoryId) {
-        //если есть события events, связанные с категорией - выкинуть исключение
         checkExistsCategory(categoryId);
         repository.deleteById(categoryId);
     }

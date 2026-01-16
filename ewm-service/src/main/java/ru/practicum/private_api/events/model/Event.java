@@ -2,6 +2,7 @@ package ru.practicum.private_api.events.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.users.model.User;
 import ru.practicum.dtos.Location;
@@ -19,7 +20,10 @@ public class Event {
     private String title;
     private int views; //Количество просмотрев события
 
-    @ManyToOne
+    private String annotation; // краткое описание
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @ToString.Exclude
     @JoinColumn(name = "category_id")
     private Category category; // категория
 
@@ -31,14 +35,19 @@ public class Event {
     @Column(name = "event_date")
     private String eventDate; //Дата и время на которые намечено событие (в формате "yyyy-MM-dd HH:mm:ss")
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
+    @ToString.Exclude
     @JoinColumn(name = "initiator_id")
     private User initiator;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
+    @ToString.Exclude
     @JoinColumn(name = "location_id")
     private Location location; //Широта и долгота места проведения события
-    private boolean paid; //Нужно ли оплачивать участие
+    private boolean paid = true; //Нужно ли оплачивать участие
+
+    @Column(name = "participant_limit")
+    private int participantLimit = 0;
 
     @Column(name = "published_on")
     private String publishedOn; //Дата и время публикации события (в формате "yyyy-MM-dd HH:mm:ss")
@@ -49,4 +58,3 @@ public class Event {
     @Enumerated(EnumType.STRING)
     private State state; //Список состояний жизненного цикла события
 }
-
