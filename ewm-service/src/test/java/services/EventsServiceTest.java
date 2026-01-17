@@ -155,7 +155,7 @@ public class EventsServiceTest {
     void createEventTest_UserNotExist() {
 
         Mockito.when(service.updateEvent(
-                Mockito.anyLong(),
+                        Mockito.anyLong(),
                         Mockito.anyLong(),
                         Mockito.any(UpdateEventUserRequest.class)))
                 .thenThrow(ApiError.class);

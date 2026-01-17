@@ -48,8 +48,10 @@ public class RequestsServiceImpl implements RequestsService {
             result.setRejectedRequests(new ArrayList<>());
             return result;
         } else {
+            //Поиск всех запросов на событие
             List<Request> allRequests = repository.findAllByEvent(eventId);
 
+            //преобразовываем в нужный формат
             List<ParticipationRequestDto> allRequestsDto = allRequests.stream()
                     .map(r -> new ParticipationRequestDto(
                                     r.getId(),
@@ -60,6 +62,7 @@ public class RequestsServiceImpl implements RequestsService {
                             )
                     ).toList();
 
+            //фильтруем все запросы по статусу CONFIRMED и возвращаем их количество
             long confirmedCount = allRequestsDto.stream()
                     .filter(r -> "CONFIRMED".equals(r.getStatus()))
                     .count();
@@ -75,23 +78,19 @@ public class RequestsServiceImpl implements RequestsService {
                 );
             }
 
-            if (!"PENDING".equals(request.getStatus())) {
-                throw new ApiError(
-                        HttpStatus.BAD_REQUEST,
-                        "Incorrectly made request.",
-                        "Request must have status PENDING"
-                );
-            }
-
             if (confirmedCount + 1 > event.getParticipantLimit()) {
                 rejectedRequests.addAll(allRequestsDto.stream()
                         .filter(r -> !"CONFIRMED".equals(r.getStatus()))
                         .toList());
             } else {
-                List<Request> requestsToProcess = repository.findAllById(request.getRequestIds().stream().map(Integer::longValue).toList());
+                List<Request> requestsToProcess = repository.findAllById(
+                        request.getRequestIds().stream().map(Integer::longValue).toList());
 
                 for (Request requestToProcess : requestsToProcess) {
-                    if ("CONFIRMED".equals(requestToProcess.getStatus())) {
+                    requestToProcess.setStatus(RequestStatus.CONFIRMED); // Обновляем статус
+                    repository.save(requestToProcess); // Сохраняем изменения в базе данных
+
+                    if ("CONFIRMED".equals(requestToProcess.getStatus().name())) {
                         confirmedRequests.add(new ParticipationRequestDto(
                                 requestToProcess.getId(),
                                 requestToProcess.getCreated(),
@@ -117,13 +116,13 @@ public class RequestsServiceImpl implements RequestsService {
 
     @Override
     public Request cancelRequest(long userId, long requestId) {
-        Request request = repository.findByIdAndRequesterId(requestId, userId);
+        Request request = repository.findByIdAndRequester(requestId, userId);
 
         if (request == null) {
             throw new ApiError(
                     HttpStatus.NOT_FOUND,
                     "The required object was not found.",
-                    "Request with id=2727 was not found"
+                    "Request with id=" + requestId + " was not found"
             );
         } else {
             request.setStatus(RequestStatus.PENDING);
@@ -168,7 +167,8 @@ public class RequestsServiceImpl implements RequestsService {
             throw new ApiError(
                     HttpStatus.CONFLICT,
                     "Integrity constraint has been violated.",
-                    "could not execute statement; SQL [n/a]; constraint [uq_request]; nested exception is org.hibernate.exception.ConstraintViolationException: could not execute statement"
+                    "could not execute statement; SQL [n/a]; constraint [uq_request]; nested exception is " +
+                            "org.hibernate.exception.ConstraintViolationException: could not execute statement"
             );
         }
 

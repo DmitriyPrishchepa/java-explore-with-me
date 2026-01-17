@@ -6,7 +6,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dtos.events.EventRequestStatusUpdateRequest;
 import ru.practicum.dtos.events.EventRequestStatusUpdateResult;
-import ru.practicum.dtos.requests.RequestStatus;
 import ru.practicum.exception.exceptions.ApiError;
 import ru.practicum.private_api.requests.model.Request;
 
@@ -45,16 +44,6 @@ public class RequestsController {
             @PathVariable("eventId") long eventId,
             @RequestBody EventRequestStatusUpdateRequest request
     ) {
-        if (request.getStatus().equals(RequestStatus.CONFIRMED.name()) ||
-                request.getStatus().equals(RequestStatus.REJECTED.name()
-                )) {
-            throw new ApiError(
-                    HttpStatus.BAD_REQUEST,
-                    "Incorrectly made request.",
-                    "Request must have status PENDING"
-            );
-        }
-
         return service.updateRequestStatus(userId, eventId, request);
     }
 
@@ -78,10 +67,10 @@ public class RequestsController {
         }
     }
 
-    @PutMapping("/{userId}/requests/{requestId}/cancel")
+    @PatchMapping("/users/{userId}/requests/{requestId}/cancel")
     public Request cancelRequest(
-            @PathVariable("userId") Long userId,
-            @PathVariable("requestId") Long requestId
+            @PathVariable("userId") long userId,
+            @PathVariable("requestId") long requestId
     ) {
         return service.cancelRequest(userId, requestId);
     }
