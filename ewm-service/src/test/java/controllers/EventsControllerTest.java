@@ -126,7 +126,7 @@ public class EventsControllerTest {
 
     @Test
     void createEventTest() throws Exception {
-        newEventDto.setEventDate("2026-12-31T15:10:05");
+        newEventDto.setEventDate("2026-12-31 15:10:05");
 
         when(service.addEvent(Mockito.anyLong(), any(NewEventDto.class)))
                 .thenReturn(eventDto);

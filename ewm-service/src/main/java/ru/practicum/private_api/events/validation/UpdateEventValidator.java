@@ -1,15 +1,22 @@
 package ru.practicum.private_api.events.validation;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import ru.practicum.admin_api.categories.model.Category;
+import ru.practicum.dtos.Location;
 import ru.practicum.dtos.events.State;
 import ru.practicum.exception.exceptions.ApiError;
+import ru.practicum.private_api.events.LocationRepository;
 import ru.practicum.private_api.events.model.Event;
 import ru.practicum.private_api.events.model.UpdateEventUserRequest;
 
 @Component
+@RequiredArgsConstructor
 public class UpdateEventValidator {
+
+    private final LocationRepository locationRepository;
+
     public Event validateEventAndUpdate(
             Event event,
             Category category,
@@ -40,9 +47,22 @@ public class UpdateEventValidator {
                 event.setEventDate(request.getEventDate());
             }
 
-            if (request.getLocation() != null) {
-                event.setLocation(request.getLocation());
+            if (request.getLocation() != null &&
+                    request.getLocation().getLat() != 0f
+                    && request.getLocation().getLon() != 0f) {
+                // Проверяем, изменилось ли местоположение
+
+                Location location = new Location();
+                location.setLat(request.getLocation().getLat());
+                location.setLon(request.getLocation().getLon());
+
+                // Сохраняем новое местоположение
+                locationRepository.save(location);
+
+                // Связываем событие с новым местоположением
+                event.setLocation(location);
             }
+
 
             if (request.getPaid() != null) {
                 event.setPaid(request.getPaid());

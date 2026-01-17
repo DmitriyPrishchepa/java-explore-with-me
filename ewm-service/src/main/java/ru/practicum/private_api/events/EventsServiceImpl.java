@@ -8,6 +8,7 @@ import ru.practicum.admin_api.categories.CategoriesRepository;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.users.UserRepository;
 import ru.practicum.admin_api.users.model.User;
+import ru.practicum.dtos.Location;
 import ru.practicum.exception.exceptions.ApiError;
 import ru.practicum.private_api.events.mapper.EventMapper;
 import ru.practicum.private_api.events.model.Event;
@@ -29,6 +30,7 @@ public class EventsServiceImpl implements EventsService {
     private final CategoriesRepository categoriesRepository;
     private final EventMapper eventMapper;
     private final UpdateEventValidator validator;
+    private final LocationRepository locationRepository;
 
     @Override
     public Event addEvent(long userId, NewEventDto newEventDto) {
@@ -42,6 +44,16 @@ public class EventsServiceImpl implements EventsService {
 
         event.setCategory(category);
         event.setInitiator(initiator);
+
+        // Получаем данные местоположения
+        Location location = new Location();
+        location.setLat(newEventDto.getLocation().getLat());
+        location.setLon(newEventDto.getLocation().getLon());
+        // Сохраняем местоположение
+        locationRepository.save(location);
+        event.setLocation(location);
+
+        // Связываем событие с местоположением
 
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");

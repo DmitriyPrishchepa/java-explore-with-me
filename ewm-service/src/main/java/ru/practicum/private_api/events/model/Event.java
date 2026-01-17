@@ -1,5 +1,6 @@
 package ru.practicum.private_api.events.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
@@ -25,6 +26,7 @@ public class Event {
     @ManyToOne(fetch = FetchType.EAGER)
     @ToString.Exclude
     @JoinColumn(name = "category_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Category category; // категория
 
     @Column(name = "confirmed_requests") //Количество одобренных заявок на участие в данном событии
@@ -38,6 +40,7 @@ public class Event {
     @ManyToOne(fetch = FetchType.EAGER)
     @ToString.Exclude
     @JoinColumn(name = "initiator_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User initiator;
 
     @OneToOne(fetch = FetchType.EAGER)

@@ -20,6 +20,7 @@ import ru.practicum.dtos.events.State;
 import ru.practicum.private_api.events.EventsRepository;
 import ru.practicum.private_api.events.EventsService;
 import ru.practicum.private_api.events.EventsServiceImpl;
+import ru.practicum.private_api.events.LocationRepository;
 import ru.practicum.private_api.events.mapper.EventMapper;
 import ru.practicum.private_api.events.model.Event;
 import ru.practicum.private_api.events.model.NewEventDto;
@@ -40,6 +41,9 @@ public class EventsServiceImplTest {
 
     @Mock
     EventsService service;
+
+    @Mock
+    LocationRepository locationRepository;
 
     @Mock
     UpdateEventValidator validator;

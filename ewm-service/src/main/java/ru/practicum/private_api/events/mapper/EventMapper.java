@@ -3,6 +3,7 @@ package ru.practicum.private_api.events.mapper;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
+import ru.practicum.dtos.events.State;
 import ru.practicum.private_api.events.model.Event;
 import ru.practicum.private_api.events.model.NewEventDto;
 
@@ -16,11 +17,11 @@ public class EventMapper {
         //категория устанавливается на уровне имплементации сервиса
         event.setDescription(newEventDto.getDescription());
         event.setEventDate(newEventDto.getEventDate());
-        event.setLocation(newEventDto.getLocation());
         event.setPaid(newEventDto.getPaid());
         event.setParticipantLimit(newEventDto.getParticipantLimit());
         event.setRequestModeration(newEventDto.getRequestModeration());
         event.setTitle(newEventDto.getTitle());
+        event.setState(State.PENDING);
         return event;
     }
 }

@@ -10,6 +10,7 @@ import ru.practicum.private_api.events.model.NewEventDto;
 import ru.practicum.private_api.events.model.UpdateEventUserRequest;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -33,13 +34,14 @@ public class EventsController {
             );
         }
 
-        LocalDateTime dateFromNewEvent = LocalDateTime.parse(dto.getEventDate());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime dateFromNewEvent = LocalDateTime.parse(dto.getEventDate(), formatter);
 
         if (!dateFromNewEvent.isAfter(LocalDateTime.now())) {
             throw new ApiError(
                     HttpStatus.FORBIDDEN,
                     "For the requested operation the conditions are not met.",
-                    "Field: eventDate. Error: должно содержать дату, которая еще не наступила. Value: 2020-12-31T15:10:05"
+                    "Field: eventDate. Error: должно содержать дату, которая еще не наступила. Value: " + dateFromNewEvent
             );
         }
 
