@@ -1104,8 +1104,142 @@
       ]
     },
     {
+      "name": "compilations",
+      "item": [
+        {
+          "name": "add compilation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function () {   \r",
+                  "     pm.expect(pm.response.code).to.be.oneOf([200,201]);\r",
+                  "     }\r",
+                  ");\r",
+                  "pm.test(\"Response have body\", function () {    pm.response.to.be.withBody;    pm.response.to.be.json;});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"events\": [\r\n    1,\r\n    2,\r\n    3\r\n  ],\r\n  \"pinned\": false,\r\n  \"title\": \"Летние концерты\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/compilations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "compilations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update compilation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.be.ok;\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Test list item response\", function () {\r",
+                  "    pm.response.to.be.withBody;\r",
+                  "    pm.response.to.be.json;\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.events.length, 'List length must be 0').to.eql(0);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"events\": [\r\n    0\r\n  ],\r\n  \"pinned\": true,\r\n  \"title\": \"Необычные фотозоны\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/compilations/{{compilationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "compilations",
+                "{{compilationId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "delete entities",
       "item": [
+        {
+          "name": "delete compilation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,204]);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/compilations/{{compilationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "compilations",
+                "{{compilationId}}"
+              ]
+            }
+          },
+          "response": []
+        },
         {
           "name": "delete category",
           "event": [
@@ -1249,6 +1383,11 @@
     {
       "key": "user2Id",
       "value": ""
+    },
+    {
+      "key": "compilationId",
+      "value": "",
+      "type": "default"
     }
   ]
 }

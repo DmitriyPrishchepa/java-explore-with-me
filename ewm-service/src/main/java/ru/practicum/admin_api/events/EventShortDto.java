@@ -1,4 +1,4 @@
-package ru.practicum.private_api.events.model;
+package ru.practicum.admin_api.events;
 
 import lombok.Data;
 import ru.practicum.dtos.categories.CategoryDto;
