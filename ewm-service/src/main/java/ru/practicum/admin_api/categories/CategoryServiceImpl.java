@@ -8,12 +8,16 @@ import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.dtos.categories.CategoryDto;
 import ru.practicum.dtos.categories.NewCategoryDto;
 import ru.practicum.exception.exceptions.ApiError;
+import ru.practicum.private_api.events.EventsRepository;
+import ru.practicum.private_api.requests.RequestsRepository;
 
 @Service
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoriesRepository repository;
+    private final EventsRepository eventsRepository;
+    private final RequestsRepository requestsRepository;
     private final CategoryMapper mapper;
 
     @Override

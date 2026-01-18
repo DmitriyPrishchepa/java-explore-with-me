@@ -183,8 +183,8 @@ public class EventsServiceImplTest {
     void updateEventTest_Success() {
         eventDto.setTitle("Updated Event Title");
 
-        Mockito.when(eventsRepository.findByInitiatorIdAndId(
-                Mockito.anyLong(), Mockito.anyLong())
+        Mockito.when(eventsRepository.findByInitiatorIdAndId(Mockito.anyLong(),
+                Mockito.anyLong())
         ).thenReturn(eventDto);
 
         UpdateEventUserRequest request = new UpdateEventUserRequest();

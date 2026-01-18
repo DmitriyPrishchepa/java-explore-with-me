@@ -40,7 +40,7 @@ public class RequestsServiceImpl implements RequestsService {
     ) {
         isUserExists(userId);
         isEventExists(eventId);
-        Event event = eventsRepository.findByInitiatorIdAndId(userId, eventId);
+        Event event = eventsRepository.getReferenceById(eventId);
 
         if (event.getParticipantLimit() == 0 || !event.isRequestModeration()) {
             EventRequestStatusUpdateResult result = new EventRequestStatusUpdateResult();
@@ -134,7 +134,7 @@ public class RequestsServiceImpl implements RequestsService {
     public Request addRequestToEvent(long userId, long eventId) {
         isUserExists(userId);
         isEventExists(eventId);
-        Event event = eventsRepository.findByInitiatorIdAndId(userId, eventId);
+        Event event = eventsRepository.getReferenceById(eventId);
 
         if (userId == event.getInitiator().getId()) {
             throw new ApiError(

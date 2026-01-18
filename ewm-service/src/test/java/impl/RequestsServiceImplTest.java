@@ -93,7 +93,7 @@ public class RequestsServiceImplTest {
         event.setViews(999);
         event.setRequestModeration(true);
 
-        Mockito.when(eventsRepository.findByInitiatorIdAndId(Mockito.anyLong(), Mockito.anyLong())).thenReturn(event);
+        Mockito.when(eventsRepository.getReferenceById(Mockito.anyLong())).thenReturn(event);
         Mockito.when(userRepository.existsById(Mockito.anyLong())).thenReturn(true);
         Mockito.when(eventsRepository.existsById(Mockito.anyLong())).thenReturn(true);
         Mockito.when(requestsRepository.countByEvent(Mockito.anyLong())).thenReturn(5L);
@@ -118,7 +118,7 @@ public class RequestsServiceImplTest {
     @Test
     void createRequestTest_EventStateNotPublished_Error() {
         event.setState(State.PENDING);
-        Mockito.when(eventsRepository.findByInitiatorIdAndId(Mockito.anyLong(), Mockito.anyLong())).thenReturn(event);
+        Mockito.when(eventsRepository.getReferenceById(Mockito.anyLong())).thenReturn(event);
         assertThrows(ApiError.class, () -> impl.addRequestToEvent(1L, 1L),
                 "the event has not been published yet.");
     }
@@ -170,7 +170,7 @@ public class RequestsServiceImplTest {
 
         event.setParticipantLimit(0);
         event.setRequestModeration(false);
-        Mockito.when(eventsRepository.findByInitiatorIdAndId(Mockito.anyLong(), Mockito.anyLong())).thenReturn(event);
+        Mockito.when(eventsRepository.getReferenceById(Mockito.anyLong())).thenReturn(event);
 
         EventRequestStatusUpdateResult res = impl.updateRequestStatus(1L, 1L, updateRequest);
         assertEquals(0, res.getConfirmedRequests().size());
@@ -190,7 +190,7 @@ public class RequestsServiceImplTest {
 
         event.setParticipantLimit(1);
 
-        Mockito.when(eventsRepository.findByInitiatorIdAndId(Mockito.anyLong(), Mockito.anyLong())).thenReturn(event);
+        Mockito.when(eventsRepository.getReferenceById(Mockito.anyLong())).thenReturn(event);
 
         assertThrows(ApiError.class, () -> impl.updateRequestStatus(1L, 1L, updateRequest),
                 "The participant limit has been reached");
@@ -206,7 +206,7 @@ public class RequestsServiceImplTest {
 
         event.setParticipantLimit(4);
 
-        Mockito.when(eventsRepository.findByInitiatorIdAndId(Mockito.anyLong(), Mockito.anyLong()))
+        Mockito.when(eventsRepository.getReferenceById(Mockito.anyLong()))
                 .thenReturn(event);
 
         EventRequestStatusUpdateResult res = impl.updateRequestStatus(1L, 1L, updateRequest);

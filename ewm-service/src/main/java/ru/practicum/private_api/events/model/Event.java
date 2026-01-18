@@ -46,6 +46,7 @@ public class Event {
     @OneToOne(fetch = FetchType.EAGER)
     @ToString.Exclude
     @JoinColumn(name = "location_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Location location; //Широта и долгота места проведения события
     private boolean paid = true; //Нужно ли оплачивать участие
 

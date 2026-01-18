@@ -9,6 +9,7 @@ import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.users.UserRepository;
 import ru.practicum.admin_api.users.model.User;
 import ru.practicum.dtos.Location;
+import ru.practicum.dtos.events.State;
 import ru.practicum.exception.exceptions.ApiError;
 import ru.practicum.private_api.events.mapper.EventMapper;
 import ru.practicum.private_api.events.model.Event;
@@ -51,15 +52,22 @@ public class EventsServiceImpl implements EventsService {
         location.setLon(newEventDto.getLocation().getLon());
         // Сохраняем местоположение
         locationRepository.save(location);
-        event.setLocation(location);
 
         // Связываем событие с местоположением
+
+        event.setLocation(location);
 
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formattedDate = now.format(formatter);
 
         event.setCreatedOn(formattedDate);
+
+        if (event.isRequestModeration()) {
+            event.setState(State.PENDING);
+        } else {
+            event.setState(State.PUBLISHED);
+        }
 
         return eventsRepository.save(event);
     }
