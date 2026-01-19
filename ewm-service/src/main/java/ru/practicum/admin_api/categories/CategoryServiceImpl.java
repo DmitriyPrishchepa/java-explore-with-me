@@ -1,6 +1,7 @@
 package ru.practicum.admin_api.categories;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import ru.practicum.admin_api.categories.mapper.CategoryMapper;
@@ -10,6 +11,8 @@ import ru.practicum.dtos.categories.NewCategoryDto;
 import ru.practicum.exception.exceptions.ApiError;
 import ru.practicum.private_api.events.EventsRepository;
 import ru.practicum.private_api.requests.RequestsRepository;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +50,26 @@ public class CategoryServiceImpl implements CategoryService {
     public void deleteCategory(long categoryId) {
         checkExistsCategory(categoryId);
         repository.deleteById(categoryId);
+    }
+
+    @Override
+    public List<CategoryDto> getCategories(int from, int size) {
+        List<Category> cats = repository.findAll(PageRequest.of(from, size)).getContent();
+        return cats.stream().map(mapper::mapToDto).toList();
+    }
+
+    @Override
+    public CategoryDto getCategoryById(long id) {
+        if (!repository.existsById(id)) {
+            throw new ApiError(
+                    HttpStatus.NOT_FOUND,
+                    "The required object was not found.",
+                    "Category with id=" + id + " was not found"
+            );
+        }
+
+        Category existingCat = repository.getReferenceById(id);
+        return mapper.mapToDto(existingCat);
     }
 
     public void checkExistsCategory(long categoryId) {

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import ru.practicum.admin_api.users.UserRepository;
+import ru.practicum.dtos.compilations.CompilationDto;
 import ru.practicum.dtos.events.EventRequestStatusUpdateRequest;
 import ru.practicum.dtos.events.EventRequestStatusUpdateResult;
 import ru.practicum.dtos.events.State;
@@ -194,6 +195,11 @@ public class RequestsServiceImpl implements RequestsService {
     @Override
     public List<Request> getRequestsByUser(long userId) {
         return repository.findByRequesterId(userId);
+    }
+
+    @Override
+    public CompilationDto getCompilations(boolean pinned, int from, int size) {
+        return null;
     }
 
     public void isEventExists(long id) {

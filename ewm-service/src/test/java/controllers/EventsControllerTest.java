@@ -14,14 +14,18 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import ru.practicum.admin_api.categories.model.Category;
+import ru.practicum.admin_api.events.EventsControllerAdmin;
 import ru.practicum.admin_api.users.model.User;
-import ru.practicum.dtos.Location;
+import ru.practicum.dtos.events.SearchEventsDto;
 import ru.practicum.dtos.events.State;
 import ru.practicum.private_api.events.EventsController;
 import ru.practicum.private_api.events.EventsService;
+import ru.practicum.private_api.events.location.Location;
 import ru.practicum.private_api.events.model.Event;
 import ru.practicum.private_api.events.model.NewEventDto;
 import ru.practicum.private_api.events.model.UpdateEventUserRequest;
+import ru.practicum.public_api.events.EventsControllerPublic;
+import ru.practicum.public_api.events.SearchEventsDtoFiltered;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -42,6 +46,15 @@ public class EventsControllerTest {
     @InjectMocks
     private EventsController controller;
 
+//    @Mock
+//    private EventsClient eventsClient;
+
+    @InjectMocks
+    private EventsControllerPublic eventsControllerPublic;
+
+    @InjectMocks
+    private EventsControllerAdmin eventsControllerAdmin;
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     private MockMvc mvc;
@@ -57,7 +70,7 @@ public class EventsControllerTest {
     void setUp() {
 
         mvc = MockMvcBuilders
-                .standaloneSetup(controller)
+                .standaloneSetup(controller, eventsControllerPublic, eventsControllerAdmin)
                 .build();
 
         Mockito.when(service.addEvent(Mockito.anyLong(), Mockito.any(NewEventDto.class)))
@@ -196,5 +209,92 @@ public class EventsControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title", is(eventDto.getTitle())));
+    }
+
+    @Test
+    void getEventsFiltered() throws Exception {
+        Mockito.when(service.searchEventsFiltered(Mockito.any(SearchEventsDtoFiltered.class)))
+                .thenReturn(List.of(eventDto));
+
+
+        mvc.perform(get("/events")
+                        .param("text", "Сплав")
+                        .param("categories", "1")
+                        .param("paid", "true")
+                        .param("rangeStart", "2024-01-01")
+                        .param("rangeEnd", "2024-12-31")
+                        .param("onlyAvailable", "false")
+                        .param("sort", "title")
+                        .param("from", "0")
+                        .param("size", "10")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.[0].title", is(eventDto.getTitle())));
+    }
+
+    @Test
+    void findEventByIdAndPublished() throws Exception {
+        Mockito.when(service.getEventByIdAndPublished(Mockito.anyLong()))
+                .thenReturn(eventDto);
+
+        mvc.perform(get("/events/" + 1)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.annotation", is(eventDto.getAnnotation())));
+    }
+
+    @Test
+    void eventsSearch() throws Exception {
+        List<Integer> users = List.of(1);
+        List<String> states = List.of("PUBLISHED");
+        List<Integer> categories = List.of(1);
+        String rangeStart = "2024-01-01 00:00:00";
+        String rangeEnd = "2024-12-31 23:59:59";
+        int from = 0;
+        int size = 10;
+
+        Mockito.when(service.searchEvents(Mockito.any(SearchEventsDto.class)))
+                .thenReturn(List.of(eventDto));
+
+        mvc.perform(get("/admin/events")
+                        .param("users", users.stream().map(String::valueOf).toArray(String[]::new))
+                        .param("states", states.toArray(new String[0]))
+                        .param("categories", categories.stream().map(String::valueOf).toArray(String[]::new))
+                        .param("rangeStart", rangeStart)
+                        .param("rangeEnd", rangeEnd)
+                        .param("from", String.valueOf(from))
+                        .param("size", String.valueOf(size))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].annotation", is(eventDto.getAnnotation())));
+    }
+
+    @Test
+    void updateEventAndStatusTest() throws Exception {
+        UpdateEventUserRequest request = new UpdateEventUserRequest();
+        request.setAnnotation("Обновлённое описание события.");
+        request.setTitle("Новый заголовок события");
+
+        eventDto.setAnnotation(request.getAnnotation());
+        eventDto.setTitle(request.getTitle());
+
+        when(service.updateEventAndStatus(Mockito.anyLong(), Mockito.any(UpdateEventUserRequest.class)))
+                .thenReturn(eventDto);
+
+        // Выполняем запрос на обновление события
+        mvc.perform(patch("/admin/events/" + 1L)
+                        .content(mapper.writeValueAsString(request))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title", is(request.getTitle())))
+                .andExpect(jsonPath("$.annotation", is(request.getAnnotation())));
     }
 }

@@ -14,21 +14,26 @@ import ru.practicum.admin_api.categories.CategoriesRepository;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.users.UserRepository;
 import ru.practicum.admin_api.users.model.User;
-import ru.practicum.dtos.Location;
+import ru.practicum.dtos.events.SearchEventsDto;
 import ru.practicum.dtos.events.State;
+import ru.practicum.dtos.events.StateAction;
 import ru.practicum.exception.exceptions.ApiError;
 import ru.practicum.private_api.events.EventsRepository;
 import ru.practicum.private_api.events.EventsService;
+import ru.practicum.private_api.events.location.Location;
 import ru.practicum.private_api.events.mapper.EventMapper;
 import ru.practicum.private_api.events.model.Event;
 import ru.practicum.private_api.events.model.NewEventDto;
 import ru.practicum.private_api.events.model.UpdateEventUserRequest;
+import ru.practicum.private_api.events.validation.EventUpdater;
 import ru.practicum.private_api.events.validation.UpdateEventValidator;
+import ru.practicum.public_api.events.SearchEventsDtoFiltered;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -36,6 +41,9 @@ public class EventsServiceTest {
 
     @Mock
     EventsRepository eventsRepository;
+
+    @Mock
+    EventUpdater eventUpdater;
 
     @Mock
     EventsService service;
@@ -209,7 +217,7 @@ public class EventsServiceTest {
         Event updatedEvent = new Event();
         updatedEvent.setTitle("Updated Event Title");
 
-        Mockito.when(validator.validateEventAndUpdate(Mockito.any(Event.class), Mockito.any(Category.class),
+        Mockito.when(eventUpdater.updateEvent(Mockito.any(Event.class), Mockito.any(Category.class),
                 Mockito.any(UpdateEventUserRequest.class))).thenReturn(updatedEvent);
 
         Mockito.when(service.updateEvent(
@@ -271,5 +279,125 @@ public class EventsServiceTest {
         Event event = service.getEventById(1L, 1L);
 
         assertEquals("Сплав на байдарках", event.getTitle());
+    }
+
+    @Test
+    void searchEventsFiltered_Success() {
+        SearchEventsDtoFiltered dto = new SearchEventsDtoFiltered();
+        dto.setText("Сплав");
+        dto.setFrom(0);
+        dto.setSize(10);
+
+        List<Event> eventsList = new ArrayList<>();
+        Event event1 = new Event();
+        event1.setTitle("Сплав на байдарках");
+        Event event2 = new Event();
+        event2.setTitle("Поход в горы");
+        eventsList.add(event1);
+        eventsList.add(event2);
+
+        Mockito.when(service.searchEventsFiltered(Mockito.any(SearchEventsDtoFiltered.class)))
+                .thenReturn(eventsList);
+
+        List<Event> events = service.searchEventsFiltered(dto);
+
+        assertEquals(2, events.size());
+        assertEquals("Сплав на байдарках", events.get(0).getTitle());
+        assertEquals("Поход в горы", events.get(1).getTitle());
+    }
+
+    @Test
+    void getEventByIdAndPublished_Success() {
+        Event event = new Event();
+        event.setId(1L);
+        event.setState(State.PUBLISHED);
+
+        Mockito.when(service.getEventByIdAndPublished(Mockito.anyLong()))
+                .thenReturn(event);
+
+        Event returnedEvent = service.getEventByIdAndPublished(1L);
+        assertNotNull(returnedEvent);
+    }
+
+    @Test
+    void getEventByIdAndPublished_EventNotFound() {
+        long nonExistingEventId = 999L;
+
+        Mockito.when(service.getEventByIdAndPublished(Mockito.anyLong()))
+                .thenThrow(ApiError.class);
+
+        assertThrows(ApiError.class, () -> {
+            service.getEventByIdAndPublished(nonExistingEventId);
+        });
+    }
+
+    @Test
+    void searchEvents_Success() {
+        SearchEventsDto dto = new SearchEventsDto();
+        dto.setFrom(0);
+        dto.setSize(10);
+        dto.setUsers(List.of(1, 2)); // Добавляем идентификатор пользователя
+        dto.setStates(List.of("PUBLISHED")); // Добавляем состояние события
+        dto.setCategories(List.of(1, 2)); // Добавляем идентификатор категории
+        dto.setRangeStart("2024-01-01 00:00:00"); // Устанавливаем начальную дату диапазона
+        dto.setRangeEnd("2024-12-31 23:59:59"); // Устанавливаем конечную дату диапазона
+
+        List<Event> eventsList = new ArrayList<>();
+        Event event1 = new Event();
+        event1.setTitle("Event 1");
+        event1.setState(State.PUBLISHED);
+        event1.setCategory(category);
+
+        eventsList.add(event1);
+
+        Category category2 = new Category();
+        category2.setId(2L);
+        category2.setName("Another Category");
+
+        Event event2 = new Event();
+        event2.setTitle("Event 2");
+        event2.setState(State.PUBLISHED);
+        event2.setCategory(category2);
+
+        eventsList.add(event2);
+
+        Mockito.when(service.searchEvents(Mockito.any(SearchEventsDto.class)))
+                .thenReturn(List.of(event1));
+
+        List<Event> events = service.searchEvents(dto);
+
+        assertEquals(1, events.size());
+        assertEquals("Event 1", events.getFirst().getTitle());
+    }
+
+    @Test
+    void testUpdateEventAndStatus_SuccessfulUpdate() {
+        // Подготовка данных
+        long eventId = 1L;
+        UpdateEventUserRequest request = new UpdateEventUserRequest();
+        request.setAnnotation("Updated annotation");
+        request.setStateAction(StateAction.PUBLISH_EVENT);
+        request.setEventDate("2024-01-01T00:00:00");
+        request.setCategory(1);
+
+        Category category = new Category();
+        category.setId(1L);
+
+        Event event = new Event();
+        event.setId(eventId);
+        event.setAnnotation("Updated annotation");
+        event.setState(State.PUBLISHED);
+        event.setCategory(category);
+        event.setCreatedOn("2023-12-31T00:00:00"); // Инициализация даты создания события
+
+        Mockito.when(service.updateEventAndStatus(Mockito.anyLong(), Mockito.any(UpdateEventUserRequest.class)))
+                .thenReturn(event);
+
+        // Выполнение метода
+        Event updatedEvent = service.updateEventAndStatus(eventId, request);
+
+        // Проверки
+        assertThat(updatedEvent.getAnnotation()).isEqualTo("Updated annotation");
+        assertThat(updatedEvent.getState()).isEqualTo(State.PUBLISHED);
     }
 }

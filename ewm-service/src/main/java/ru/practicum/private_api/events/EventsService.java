@@ -1,8 +1,10 @@
 package ru.practicum.private_api.events;
 
+import ru.practicum.dtos.events.SearchEventsDto;
 import ru.practicum.private_api.events.model.Event;
 import ru.practicum.private_api.events.model.NewEventDto;
 import ru.practicum.private_api.events.model.UpdateEventUserRequest;
+import ru.practicum.public_api.events.SearchEventsDtoFiltered;
 
 import java.util.List;
 
@@ -15,4 +17,11 @@ public interface EventsService {
 
     Event getEventById(long userId, long eventId);
 
+    List<Event> searchEvents(SearchEventsDto dto);
+
+    Event updateEventAndStatus(long eventId, UpdateEventUserRequest request);
+
+    List<Event> searchEventsFiltered(SearchEventsDtoFiltered dto);
+
+    Event getEventByIdAndPublished(long id);
 }

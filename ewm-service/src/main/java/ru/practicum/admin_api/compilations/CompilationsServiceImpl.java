@@ -1,6 +1,8 @@
 package ru.practicum.admin_api.compilations;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +18,9 @@ import ru.practicum.exception.exceptions.ApiError;
 import ru.practicum.private_api.events.EventsRepository;
 import ru.practicum.private_api.events.model.Event;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -124,5 +128,78 @@ public class CompilationsServiceImpl implements CompilationsService {
                 .toList());
 
         return resultDto;
+    }
+
+    @Override
+    public List<CompilationDto> getCompilations(boolean pinned, int from, int size) {
+        PageRequest pageRequest = PageRequest.of(from, size);
+
+        // Логика получения списка подборок
+        List<Compilation> compilations = compilationRepository.findByPinned(pinned);
+
+        List<CompilationDto> compilationDtos = new ArrayList<>();
+
+        for (Compilation compilation : compilations) {
+            CompilationDto dto = new CompilationDto();
+            dto.setId(compilation.getId());
+            dto.setTitle(compilation.getTitle());
+            dto.setPinned(compilation.isPinned());
+
+            // Получаем события для текущей подборки
+            List<Event> events = getEventsByCompilationId(compilation.getId(), pageRequest);
+
+            dto.setEvents(events.stream()
+                    .map(compilationsEventsMapper::toDto
+                    )
+                    .toList()
+            );
+
+            compilationDtos.add(dto);
+        }
+
+        return compilationDtos;
+    }
+
+    @Override
+    public CompilationDto getCompilationById(long compId) {
+
+        if (!compilationRepository.existsById(compId)) {
+            throw new ApiError(
+                    HttpStatus.NOT_FOUND,
+                    "The required object was not found.",
+                    "Compilation with id=" + compId + " was not found"
+            );
+        }
+
+        Compilation compilation = compilationRepository.getReferenceById(compId);
+
+        List<Event> events = getEventsByCompilationId(compId, PageRequest.of(0, 10));
+
+        CompilationDto resultDto = new CompilationDto();
+
+        resultDto.setId(compilation.getId());
+        resultDto.setPinned(compilation.isPinned());
+        resultDto.setTitle(compilation.getTitle());
+        resultDto.setEvents(events.stream()
+                .map(compilationsEventsMapper::toDto
+                )
+                .toList()
+        );
+
+        return resultDto;
+    }
+
+    private List<Event> getEventsByCompilationId(long compilationId, PageRequest pageRequest) {
+        // Получаем все записи, связывающие подборку и события
+        List<CompilationEvents> compilationEvents = compilationEventsRepository.findByCompilationId(compilationId);
+
+        // Извлекаем IDs событий
+        List<Long> eventIds = compilationEvents.stream()
+                .map(CompilationEvents::getEventId)
+                .collect(Collectors.toList());
+
+        // Получаем события по их ID с учетом пагинации
+        Page<Event> eventsPage = eventsRepository.findAllById(eventIds, pageRequest);
+        return eventsPage.getContent();
     }
 }

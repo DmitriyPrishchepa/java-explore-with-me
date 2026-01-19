@@ -1,4 +1,4 @@
-package ru.practicum.dtos;
+package ru.practicum.private_api.events.location;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -11,6 +11,6 @@ public class Location {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private float lat; //широта
-    private float lon; //долгота
+    private float lat;
+    private float lon;
 }

@@ -6,8 +6,8 @@ import lombok.Data;
 import lombok.ToString;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.users.model.User;
-import ru.practicum.dtos.Location;
 import ru.practicum.dtos.events.State;
+import ru.practicum.private_api.events.location.Location;
 
 @Entity
 @Table(name = "events")

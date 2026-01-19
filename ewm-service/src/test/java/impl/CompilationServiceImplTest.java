@@ -9,6 +9,10 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import ru.practicum.admin_api.categories.mapper.CategoryMapper;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.compilations.CompilationEventsRepository;
@@ -24,6 +28,7 @@ import ru.practicum.dtos.compilations.NewCompilationDto;
 import ru.practicum.dtos.compilations.UpdateCompilationRequest;
 import ru.practicum.dtos.events_public.EventShortDto;
 import ru.practicum.dtos.users.UserShortDto;
+import ru.practicum.exception.exceptions.ApiError;
 import ru.practicum.private_api.events.EventsRepository;
 import ru.practicum.private_api.events.model.Event;
 
@@ -31,6 +36,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -226,6 +232,59 @@ public class CompilationServiceImplTest {
             impl.deleteCompilation(1L);
         } catch (RuntimeException e) {
             assertEquals("Compilation with id=" + 1 + " was not found", e.getMessage());
+        }
+    }
+
+    @Test
+    void getCompilations_Success() {
+        Mockito.when(compilationRepository.findByPinned(Mockito.anyBoolean()))
+                .thenReturn(List.of(compilation));
+
+        Mockito.when(eventsRepository.findAllById(Mockito.anyList(), Mockito.any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(event, event2)));
+
+        List<CompilationDto> compilationDtos = impl.getCompilations(true, 0, 10);
+
+        // Проверка результатов
+        assertEquals(1, compilationDtos.size());
+        CompilationDto dto = compilationDtos.getFirst();
+        assertEquals("Летние концерты", dto.getTitle());
+        assertEquals(2, dto.getEvents().size());
+    }
+
+    @Test
+    void getCompilationById_Success() {
+        Mockito.when(compilationRepository.existsById(Mockito.anyLong()))
+                .thenReturn(true);
+
+        Mockito.when(compilationRepository.getReferenceById(Mockito.anyLong()))
+                .thenReturn(compilation);
+
+        Mockito.when(categoryMapper.mapToDto(Mockito.any(Category.class)))
+                .thenReturn(categoryDto);
+
+        Mockito.when(userMapper.mapToShortDto(Mockito.any(User.class)))
+                .thenReturn(userShortDto);
+
+        Mockito.when(compilationsEventsMapper.toDto(Mockito.any(Event.class)))
+                .thenReturn(eventShortDto);
+
+        Mockito.when(eventsRepository.findAllById(Mockito.anyList(), Mockito.any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(event)));
+
+        CompilationDto dto = impl.getCompilationById(1L);
+
+        assertNotNull(dto);
+    }
+
+    @Test
+    void getCompilationById_Error() {
+        Mockito.when(compilationRepository.existsById(Mockito.anyLong())).thenReturn(false);
+
+        try {
+            impl.getCompilationById(999L);
+        } catch (ApiError e) {
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatus());
         }
     }
 }

@@ -4,23 +4,28 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import ru.practicum.EventsClient;
 import ru.practicum.admin_api.categories.CategoriesRepository;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.users.UserRepository;
 import ru.practicum.admin_api.users.model.User;
-import ru.practicum.dtos.Location;
+import ru.practicum.dtos.events.SearchEventsDto;
 import ru.practicum.dtos.events.State;
 import ru.practicum.exception.exceptions.ApiError;
+import ru.practicum.private_api.events.location.Location;
 import ru.practicum.private_api.events.mapper.EventMapper;
 import ru.practicum.private_api.events.model.Event;
 import ru.practicum.private_api.events.model.NewEventDto;
 import ru.practicum.private_api.events.model.UpdateEventUserRequest;
+import ru.practicum.private_api.events.validation.EventUpdater;
 import ru.practicum.private_api.events.validation.UpdateEventValidator;
+import ru.practicum.public_api.events.SearchEventsDtoFiltered;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +37,10 @@ public class EventsServiceImpl implements EventsService {
     private final EventMapper eventMapper;
     private final UpdateEventValidator validator;
     private final LocationRepository locationRepository;
+    private final UpdateEventValidator updateEventValidator;
+    private final EventUpdater eventUpdater;
+
+    private final EventsClient eventsClient;
 
     @Override
     public Event addEvent(long userId, NewEventDto newEventDto) {
@@ -67,6 +76,7 @@ public class EventsServiceImpl implements EventsService {
             event.setState(State.PENDING);
         } else {
             event.setState(State.PUBLISHED);
+            event.setCreatedOn(formattedDate);
         }
 
         return eventsRepository.save(event);
@@ -81,7 +91,12 @@ public class EventsServiceImpl implements EventsService {
         Category category = categoriesRepository.getReferenceById(request.getCategory().longValue());
         Event existingEvent = eventsRepository.findByInitiatorIdAndId(userId, eventId);
 
-        Event updatedEvent = validator.validateEventAndUpdate(existingEvent, category, request);
+        updateEventValidator.validate(existingEvent, request);
+        System.out.println(existingEvent);
+        System.out.println(request);
+        Event updatedEvent = eventUpdater.updateEvent(existingEvent, category, request);
+
+        System.out.println(updatedEvent);
         return eventsRepository.save(updatedEvent);
     }
 
@@ -104,6 +119,146 @@ public class EventsServiceImpl implements EventsService {
         isUserExists(userId);
         isEventExists(eventId);
         return eventsRepository.findByInitiatorIdAndId(userId, eventId);
+    }
+
+    @Override
+    public List<Event> searchEvents(SearchEventsDto dto) {
+        PageRequest pageRequest = PageRequest.of(dto.getFrom(), dto.getSize());
+
+        List<Event> events = new ArrayList<>();
+        List<State> states;
+
+        if (!dto.getUsers().isEmpty()) {
+            events = eventsRepository.findByInitiatorIdIn(dto.getUsers(), pageRequest).getContent();
+        }
+
+        if (!events.isEmpty() && !dto.getStates().isEmpty()) {
+            states = dto.getStates().stream()
+                    .map(State::valueOf)
+                    .toList();
+            events = events.stream()
+                    .filter(event -> states.contains(event.getState()))
+                    .toList();
+        } else if (!dto.getStates().isEmpty()) {
+            states = dto.getStates().stream()
+                    .map(State::valueOf)
+                    .collect(Collectors.toList());
+            events = eventsRepository.findAllByStateInStates(states, pageRequest).getContent();
+        }
+
+        List<Long> categoryIds = dto.getCategories().stream()
+                .map(Integer::longValue)
+                .toList();
+
+        if (!events.isEmpty() && !categoryIds.isEmpty()) {
+            events = events.stream()
+                    .filter(event -> categoryIds.contains(event.getCategory().getId()))
+                    .toList();
+        } else if (!categoryIds.isEmpty()) {
+            events = eventsRepository.findAllByCategoryIdIn(categoryIds, pageRequest).getContent();
+        }
+
+        // Поиск по диапазону дат (rangeStart и rangeEnd)
+        if (dto.getRangeStart() != null && dto.getRangeEnd() != null) {
+            LocalDateTime startDate = LocalDateTime.parse(
+                    dto.getRangeStart(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            LocalDateTime endDate = LocalDateTime.parse(
+                    dto.getRangeEnd(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+            String startDateString = startDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            String endDateString = endDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+            events = eventsRepository.findByEventDateBetween(startDateString, endDateString);
+        }
+
+        return events;
+    }
+
+    @Override
+    public Event updateEventAndStatus(long eventId, UpdateEventUserRequest request) {
+        Event event = eventsRepository.findById(eventId)
+                .orElseThrow(() -> new ApiError(
+                        HttpStatus.NOT_FOUND,
+                        "The required object was not found.",
+                        "Event with id=" + eventId + " was not found"
+                ));
+
+        updateEventValidator.validate(event, request);
+
+        System.out.println("Дата публикации:" + event.getPublishedOn());
+        System.out.println("Дата начала события" + request.getEventDate());
+
+        LocalDateTime publicationDate = LocalDateTime.parse(request.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime eventDate = LocalDateTime.parse(event.getPublishedOn(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+
+        if (eventDate.isBefore(publicationDate.plusHours(1))) {
+            throw new ApiError(
+                    HttpStatus.FORBIDDEN,
+                    "Incorrectly made request.",
+                    "Дата начала события должна быть не ранее чем через час после даты публикации");
+        }
+
+        Category category = categoriesRepository.getReferenceById(request.getCategory().longValue());
+
+        Event updatedEvent = eventUpdater.updateEvent(event, category, request);
+
+        return eventsRepository.save(updatedEvent);
+    }
+
+    @Override
+    public List<Event> searchEventsFiltered(SearchEventsDtoFiltered dto) {
+        PageRequest pageRequest = PageRequest.of(dto.getFrom(), dto.getSize());
+
+        List<Event> events;
+        if (dto.getRangeStart() == null || dto.getRangeEnd() == null) {
+            events = eventsRepository.findPublishedEventsWithTextSearch(State.PUBLISHED, dto.getText(), pageRequest);
+        } else {
+            events = eventsRepository.findPublishedEventsWithinDateRange(State.PUBLISHED,
+                    dto.getRangeStart(),
+                    dto.getRangeEnd(),
+                    pageRequest);
+        }
+
+        for (Event event : events) {
+            event.setViews(event.getViews() + 1);
+            eventsRepository.save(event);
+        }
+
+        //информация о событии должна включать в себя количество просмотров и количество подтвержденных запросов
+        //надо обращаться к сервису статистики
+
+        return events;
+    }
+
+    @Override
+    public Event getEventByIdAndPublished(long id) {
+        Event event = eventsRepository.findById(id)
+                .orElseThrow(() -> new ApiError(
+                        HttpStatus.NOT_FOUND,
+                        "The required object was not found.",
+                        "Event with id=" + id + " was not found"
+                ));
+
+        if (!event.getState().name().equals("PUBLISHED")) {
+            throw new ApiError(
+                    HttpStatus.FORBIDDEN,
+                    "Event must be PUBLISHED",
+                    "Event must be PUBLISHED");
+        }
+
+        //информация о событии должна включать в себя количество просмотров и количество подтвержденных запросов
+        //надо обращаться к сервису статистики
+
+        // Получение количества просмотров
+//        long viewsCount = viewService.getViewsCount(id);
+//        event.setViews(viewsCount);
+//
+//        // Получение количества подтвержденных запросов
+//        long confirmedRequestsCount = requestService.getConfirmedRequestsCount(id);
+//        event.setConfirmedRequests(confirmedRequestsCount);
+
+        return event;
     }
 
     public void isUserExists(long id) {

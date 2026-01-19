@@ -26,11 +26,13 @@ import ru.practicum.dtos.compilations.UpdateCompilationRequest;
 import ru.practicum.dtos.events_public.EventShortDto;
 import ru.practicum.dtos.users.UserShortDto;
 import ru.practicum.private_api.events.model.Event;
+import ru.practicum.public_api.compilations.CompilationControllerPublic;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,6 +49,9 @@ public class CompilationControllerTest {
 
     @InjectMocks
     private CompilationsController compilationsController;
+
+    @InjectMocks
+    private CompilationControllerPublic compilationControllerPublic;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -68,7 +73,7 @@ public class CompilationControllerTest {
     @BeforeEach
     void setUp() {
         mvc = MockMvcBuilders
-                .standaloneSetup(compilationsController)
+                .standaloneSetup(compilationsController, compilationControllerPublic)
                 .build();
 
 
@@ -147,6 +152,7 @@ public class CompilationControllerTest {
 
         compilationDto = new CompilationDto();
         compilationDto.setEvents(List.of(eventShortDto, eventShortDto2));
+        compilationDto.setPinned(true);
     }
 
     @Test
@@ -186,5 +192,35 @@ public class CompilationControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void getCompilations() throws Exception {
+
+        Mockito.when(compilationsService.getCompilations(Mockito.anyBoolean(), Mockito.anyInt(), Mockito.anyInt()))
+                .thenReturn(List.of(compilationDto));
+
+        mvc.perform(get("/compilations")
+                        .param("pinned", "true")
+                        .param("from", "0")
+                        .param("size", "10")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].pinned", is(true)));
+    }
+
+    @Test
+    void getCompilationById() throws Exception {
+        Mockito.when(compilationsService.getCompilationById(Mockito.anyLong()))
+                .thenReturn(compilationDto);
+
+        mvc.perform(get("/compilations/" + 1)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pinned", is(true)));
     }
 }

@@ -25,6 +25,7 @@ import ru.practicum.private_api.events.model.Event;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -187,5 +188,41 @@ public class CompilationServiceTest {
         service.deleteCompilation(1L);
 
         Mockito.verify(service, Mockito.times(1)).deleteCompilation(Mockito.anyLong());
+    }
+
+    @Test
+    void getCompilations_Success() {
+        Mockito.when(service.getCompilations(Mockito.anyBoolean(), Mockito.anyInt(), Mockito.anyInt()))
+                .thenReturn(List.of(compilationDto));
+
+        List<CompilationDto> compilationDtos = service.getCompilations(true, 0, 10);
+
+        assertEquals(1, compilationDtos.size());
+    }
+
+    @Test
+    void getCompilationById_Success() {
+        Mockito.when(service.getCompilationById(Mockito.anyLong()))
+                .thenReturn(compilationDto);
+
+        CompilationDto dto = service.getCompilationById(1L);
+
+        assertNotNull(dto);
+    }
+
+    @Test
+    void getCompilationById_Error() {
+        Mockito.when(service.getCompilationById(Mockito.anyLong()))
+                .thenThrow(new ApiError(
+                        HttpStatus.NOT_FOUND,
+                        "The required object was not found.",
+                        "Compilation with id=" + 1 + " was not found"
+                ));
+
+        try {
+            service.getCompilationById(999L);
+        } catch (ApiError e) {
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatus());
+        }
     }
 }

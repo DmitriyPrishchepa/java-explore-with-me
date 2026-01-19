@@ -3,9 +3,9 @@ package ru.practicum.private_api.events.validation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import ru.practicum.admin_api.categories.model.Category;
-import ru.practicum.dtos.Location;
+import ru.practicum.admin_api.categories.CategoriesRepository;
 import ru.practicum.dtos.events.State;
+import ru.practicum.dtos.events.StateAction;
 import ru.practicum.exception.exceptions.ApiError;
 import ru.practicum.private_api.events.LocationRepository;
 import ru.practicum.private_api.events.model.Event;
@@ -16,12 +16,10 @@ import ru.practicum.private_api.events.model.UpdateEventUserRequest;
 public class UpdateEventValidator {
 
     private final LocationRepository locationRepository;
+    private final CategoriesRepository categoriesRepository; // Добавляем репозиторий категорий
 
-    public Event validateEventAndUpdate(
-            Event event,
-            Category category,
-            UpdateEventUserRequest request
-    ) {
+    public void validate(Event event, UpdateEventUserRequest request) {
+        // Проверка состояния события
         if (event.getState().equals(State.PUBLISHED)) {
             throw new ApiError(
                     HttpStatus.BAD_REQUEST,
@@ -29,77 +27,20 @@ public class UpdateEventValidator {
                     "Event must not be published");
         }
 
-        if (event.getState().equals(State.PENDING) || event.getState().equals(State.CANCELED)) {
-
-            if (request.getAnnotation() != null) {
-                event.setAnnotation(request.getAnnotation());
+        // Проверяем условия для публикации события
+        if (!event.getState().equals(State.PENDING)) {
+            if (request.getStateAction() == StateAction.PUBLISH_EVENT) {
+                throw new ApiError(
+                        HttpStatus.FORBIDDEN,
+                        "For the requested operation the conditions are not met.",
+                        "Cannot publish the event because it's not in the right state: PUBLISHED"
+                );
             }
-
-            if (request.getCategory() != null) {
-                event.setCategory(category);
-            }
-
-            if (request.getDescription() != null) {
-                event.setDescription(request.getDescription());
-            }
-
-            if (request.getEventDate() != null) {
-                event.setEventDate(request.getEventDate());
-            }
-
-            if (request.getLocation() != null &&
-                    request.getLocation().getLat() != 0f
-                    && request.getLocation().getLon() != 0f) {
-                // Проверяем, изменилось ли местоположение
-
-                Location location = new Location();
-                location.setLat(request.getLocation().getLat());
-                location.setLon(request.getLocation().getLon());
-
-                // Сохраняем новое местоположение
-                locationRepository.save(location);
-
-                // Связываем событие с новым местоположением
-                event.setLocation(location);
-            }
-
-
-            if (request.getPaid() != null) {
-                event.setPaid(request.getPaid());
-            }
-
-            if (request.getParticipantLimit() != null) {
-                event.setParticipantLimit(request.getParticipantLimit());
-            }
-
-            if (request.getRequestModeration() != null) {
-                event.setRequestModeration(request.getRequestModeration());
-            }
-
-            if (request.getStateAction() != null) {
-                switch (request.getStateAction()) {
-                    case SEND_TO_REVIEW:
-                        event.setState(State.PENDING);
-                        break;
-                    case CANCEL_REVIEW:
-                        // Здесь можно решить, в какое состояние переводить событие
-                        event.setState(State.CANCELED);
-                        break;
-                }
-            }
-
-            if (request.getTitle() != null) {
-                event.setTitle(request.getTitle());
-            }
-
-        } else {
+        } else if (event.getState().equals(State.PUBLISHED) && request.getStateAction() == StateAction.CANCEL_REVIEW) {
             throw new ApiError(
                     HttpStatus.FORBIDDEN,
                     "For the requested operation the conditions are not met.",
-                    "Only pending or canceled events can be changed"
-            );
+                    "Cannot publish the event because it's not in the right state: PUBLISHED");
         }
-
-        return event;
     }
 }

@@ -15,22 +15,30 @@ import ru.practicum.admin_api.categories.CategoriesRepository;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.users.UserRepository;
 import ru.practicum.admin_api.users.model.User;
-import ru.practicum.dtos.Location;
+import ru.practicum.dtos.events.SearchEventsDto;
 import ru.practicum.dtos.events.State;
+import ru.practicum.exception.exceptions.ApiError;
 import ru.practicum.private_api.events.EventsRepository;
 import ru.practicum.private_api.events.EventsService;
 import ru.practicum.private_api.events.EventsServiceImpl;
 import ru.practicum.private_api.events.LocationRepository;
+import ru.practicum.private_api.events.location.Location;
 import ru.practicum.private_api.events.mapper.EventMapper;
 import ru.practicum.private_api.events.model.Event;
 import ru.practicum.private_api.events.model.NewEventDto;
 import ru.practicum.private_api.events.model.UpdateEventUserRequest;
+import ru.practicum.private_api.events.validation.EventUpdater;
 import ru.practicum.private_api.events.validation.UpdateEventValidator;
+import ru.practicum.public_api.events.SearchEventsDtoFiltered;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -49,6 +57,9 @@ public class EventsServiceImplTest {
     UpdateEventValidator validator;
 
     @Mock
+    EventUpdater eventUpdater;
+
+    @Mock
     UserRepository userRepository;
 
     @Mock
@@ -62,6 +73,7 @@ public class EventsServiceImplTest {
 
     Event eventDto;
     Event mockedEvent;
+    Event mockedEvent2;
     NewEventDto newEventDto;
     Category category;
     User initiator;
@@ -70,7 +82,7 @@ public class EventsServiceImplTest {
     @BeforeEach
     void setUp() {
 
-        Mockito.when(service.addEvent(Mockito.anyLong(), Mockito.any(NewEventDto.class)))
+        when(service.addEvent(anyLong(), Mockito.any(NewEventDto.class)))
                 .thenReturn(eventDto);
 
         newEventDto = new NewEventDto();
@@ -120,29 +132,29 @@ public class EventsServiceImplTest {
         eventDto.setViews(999);
 
         mockedEvent = Mockito.mock(Event.class);
-        Mockito.when(mockedEvent.getAnnotation()).thenReturn(eventDto.getAnnotation());
-        Mockito.when(mockedEvent.getCategory()).thenReturn(eventDto.getCategory());
-        Mockito.when(mockedEvent.getConfirmedRequests()).thenReturn(eventDto.getConfirmedRequests());
-        Mockito.when(mockedEvent.getCreatedOn()).thenReturn(eventDto.getCreatedOn());
-        Mockito.when(mockedEvent.getDescription()).thenReturn(eventDto.getDescription());
-        Mockito.when(mockedEvent.getId()).thenReturn(eventDto.getId());
-        Mockito.when(mockedEvent.getInitiator()).thenReturn(eventDto.getInitiator());
-        Mockito.when(mockedEvent.getLocation()).thenReturn(eventDto.getLocation());
-        Mockito.when(mockedEvent.getParticipantLimit()).thenReturn(eventDto.getParticipantLimit());
-        Mockito.when(mockedEvent.getPublishedOn()).thenReturn(eventDto.getPublishedOn());
-        Mockito.when(mockedEvent.getState()).thenReturn(eventDto.getState());
-        Mockito.when(mockedEvent.getTitle()).thenReturn(eventDto.getTitle());
+        when(mockedEvent.getAnnotation()).thenReturn(eventDto.getAnnotation());
+        when(mockedEvent.getCategory()).thenReturn(eventDto.getCategory());
+        when(mockedEvent.getConfirmedRequests()).thenReturn(eventDto.getConfirmedRequests());
+        when(mockedEvent.getCreatedOn()).thenReturn(eventDto.getCreatedOn());
+        when(mockedEvent.getDescription()).thenReturn(eventDto.getDescription());
+        when(mockedEvent.getId()).thenReturn(eventDto.getId());
+        when(mockedEvent.getInitiator()).thenReturn(eventDto.getInitiator());
+        when(mockedEvent.getLocation()).thenReturn(eventDto.getLocation());
+        when(mockedEvent.getParticipantLimit()).thenReturn(eventDto.getParticipantLimit());
+        when(mockedEvent.getPublishedOn()).thenReturn(eventDto.getPublishedOn());
+        when(mockedEvent.getState()).thenReturn(eventDto.getState());
+        when(mockedEvent.getTitle()).thenReturn(eventDto.getTitle());
 
-        Mockito.when(userRepository.existsById(Mockito.anyLong())).thenReturn(true);
-        Mockito.when(categoriesRepository.existsById(Mockito.anyLong())).thenReturn(true);
-        Mockito.when(eventsRepository.existsById(Mockito.anyLong())).thenReturn(true);
+        when(userRepository.existsById(anyLong())).thenReturn(true);
+        when(categoriesRepository.existsById(anyLong())).thenReturn(true);
+        when(eventsRepository.existsById(anyLong())).thenReturn(true);
 
-        Mockito.when(mapper.fromDto(Mockito.any(NewEventDto.class))).thenReturn(eventDto);
+        when(mapper.fromDto(Mockito.any(NewEventDto.class))).thenReturn(eventDto);
 
-        Mockito.when(categoriesRepository.getReferenceById(Mockito.anyLong())).thenReturn(category);
-        Mockito.when(userRepository.getReferenceById(Mockito.anyLong())).thenReturn(initiator);
+        when(categoriesRepository.getReferenceById(anyLong())).thenReturn(category);
+        when(userRepository.getReferenceById(anyLong())).thenReturn(initiator);
 
-        Mockito.when(eventsRepository.save(Mockito.any(Event.class))).thenReturn(eventDto);
+        when(eventsRepository.save(Mockito.any(Event.class))).thenReturn(eventDto);
     }
 
     @Test
@@ -158,7 +170,7 @@ public class EventsServiceImplTest {
     @Test
     void createEventTest_UserNotExist() {
 
-        Mockito.when(userRepository.existsById(Mockito.anyLong())).thenReturn(false);
+        when(userRepository.existsById(anyLong())).thenReturn(false);
 
         try {
             impl.addEvent(1L, newEventDto);
@@ -170,7 +182,7 @@ public class EventsServiceImplTest {
     @Test
     void createEventTest_CategoryNotExists() {
 
-        Mockito.when(categoriesRepository.existsById(Mockito.anyLong())).thenReturn(false);
+        when(categoriesRepository.existsById(anyLong())).thenReturn(false);
 
         try {
             impl.addEvent(1L, newEventDto);
@@ -183,8 +195,8 @@ public class EventsServiceImplTest {
     void updateEventTest_Success() {
         eventDto.setTitle("Updated Event Title");
 
-        Mockito.when(eventsRepository.findByInitiatorIdAndId(Mockito.anyLong(),
-                Mockito.anyLong())
+        when(eventsRepository.findByInitiatorIdAndId(anyLong(),
+                anyLong())
         ).thenReturn(eventDto);
 
         UpdateEventUserRequest request = new UpdateEventUserRequest();
@@ -201,7 +213,7 @@ public class EventsServiceImplTest {
         Event updatedEvent = new Event();
         updatedEvent.setTitle("Updated Event Title");
 
-        Mockito.when(validator.validateEventAndUpdate(Mockito.any(Event.class), Mockito.any(Category.class),
+        when(eventUpdater.updateEvent(Mockito.any(Event.class), Mockito.any(Category.class),
                 Mockito.any(UpdateEventUserRequest.class))).thenReturn(updatedEvent);
 
         Event updatingdEvent = impl.updateEvent(1L, 1L, request);
@@ -219,7 +231,7 @@ public class EventsServiceImplTest {
         eventsList.add(event1);
         eventsList.add(event2);
 
-        Mockito.when(eventsRepository.findAll(Mockito.any(PageRequest.class)))
+        when(eventsRepository.findAll(Mockito.any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(eventsList));
 
         List<Event> events = impl.getEvents(1L, 0, 10);
@@ -233,7 +245,7 @@ public class EventsServiceImplTest {
     void getEvents_ReturnEmptyList() {
         List<Event> eventsList = new ArrayList<>();
 
-        Mockito.when(eventsRepository.findAll(Mockito.any(PageRequest.class)))
+        when(eventsRepository.findAll(Mockito.any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(eventsList));
 
         List<Event> events = impl.getEvents(1L, 0, 10);
@@ -243,11 +255,145 @@ public class EventsServiceImplTest {
 
     @Test
     void getEventById_Success() {
-        Mockito.when(eventsRepository.findByInitiatorIdAndId(Mockito.anyLong(), Mockito.anyLong()))
+        when(eventsRepository.findByInitiatorIdAndId(anyLong(), anyLong()))
                 .thenReturn(eventDto);
 
         Event event = impl.getEventById(1L, 1L);
 
         assertEquals("Сплав на байдарках", event.getTitle());
     }
+
+    @Test
+    void searchEventsFiltered_Success() {
+        SearchEventsDtoFiltered dto = new SearchEventsDtoFiltered();
+        dto.setText("Сплав");
+        dto.setFrom(0);
+        dto.setSize(10);
+
+        List<Event> eventsList = new ArrayList<>();
+        Event event1 = new Event();
+        event1.setTitle("Сплав на байдарках");
+        Event event2 = new Event();
+        event2.setTitle("Поход в горы");
+        eventsList.add(event1);
+        eventsList.add(event2);
+
+        when(eventsRepository.findPublishedEventsWithTextSearch(
+                Mockito.any(State.class),
+                Mockito.anyString(),
+                Mockito.any(PageRequest.class)))
+                .thenReturn(eventsList);
+
+        List<Event> events = impl.searchEventsFiltered(dto);
+
+        assertEquals(2, events.size());
+        assertEquals("Сплав на байдарках", events.get(0).getTitle());
+        assertEquals("Поход в горы", events.get(1).getTitle());
+    }
+
+    @Test
+    void getEventByIdAndPublished_Success() {
+        Event event = new Event();
+        event.setId(1L);
+        event.setState(State.PUBLISHED);
+
+        when(eventsRepository.findById(anyLong()))
+                .thenReturn(Optional.of(event));
+
+        Event returnedEvent = impl.getEventByIdAndPublished(1L);
+        assertEquals(event, returnedEvent);
+    }
+
+    @Test
+    void getEventByIdAndPublished_EventNotFound() {
+        long nonExistingEventId = 999L;
+
+        when(eventsRepository.findById(nonExistingEventId))
+                .thenReturn(Optional.empty());
+
+        assertThrows(ApiError.class, () -> {
+            impl.getEventByIdAndPublished(nonExistingEventId);
+        });
+    }
+
+    @Test
+    void searchEvents_Success() {
+        SearchEventsDto dto = new SearchEventsDto();
+        dto.setFrom(0);
+        dto.setSize(10);
+        dto.setUsers(List.of(1, 2));
+        dto.setStates(List.of("PUBLISHED"));
+        dto.setCategories(List.of(1, 2));
+        dto.setRangeStart("2024-01-01 00:00:00");
+        dto.setRangeEnd("2024-12-31 23:59:59");
+
+        List<Event> eventsList = new ArrayList<>();
+        Event event1 = new Event();
+        event1.setTitle("Event 1");
+        event1.setState(State.PUBLISHED);
+        event1.setCategory(category);
+
+        eventsList.add(event1);
+
+        Category category2 = new Category();
+        category2.setId(2L);
+        category2.setName("Another Category");
+
+        Event event2 = new Event();
+        event2.setTitle("Event 2");
+        event2.setState(State.PUBLISHED);
+        event2.setCategory(category2);
+
+        eventsList.add(event2);
+
+        when(eventsRepository.findByInitiatorIdIn(Mockito.anyList(), Mockito.any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(eventsList));
+
+        when(eventsRepository.findAllByStateInStates(Mockito.anyList(), Mockito.any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(event1)));
+
+        when(eventsRepository.findByEventDateBetween(Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(List.of(event1));
+
+        List<Event> events = impl.searchEvents(dto);
+
+        assertEquals(1, events.size());
+        assertEquals("Event 1", events.getFirst().getTitle());
+    }
+
+//    @Test
+//    void testUpdateEventAndStatus_SuccessfulUpdate() {
+//        // Подготовка данных
+//        long eventId = 1L;
+//        UpdateEventUserRequest request = new UpdateEventUserRequest();
+//        request.setAnnotation("Updated annotation");
+//        request.setStateAction(StateAction.PUBLISH_EVENT);
+//        request.setEventDate("2024-01-01 00:00:00");
+//        request.setCategory(1);
+//
+//        Category category = new Category();
+//        category.setId(1L);
+//
+//        Event event = new Event();
+//        event.setId(eventId);
+//        event.setAnnotation("Updated annotation");
+//        event.setState(State.PUBLISHED);
+//        event.setCategory(category);
+//        event.setCreatedOn("2023-12-31 00:00:00"); // Инициализация даты создания события
+//
+//        when(eventsRepository.findById(eventId)).thenReturn(Optional.of(event));
+//        when(categoriesRepository.getReferenceById(Mockito.anyLong())).thenReturn(category);
+//        when(eventsRepository.save(Mockito.any(Event.class)))
+//                .thenReturn(event);
+//        when(eventUpdater.updateEvent(
+//                Mockito.any(Event.class),
+//                Mockito.any(Category.class),
+//                Mockito.any(UpdateEventUserRequest.class)))
+//                .thenReturn(event);
+//
+//        Event updatedEvent = impl.updateEventAndStatus(eventId, request);
+//
+//        assertThat(updatedEvent.getAnnotation()).isEqualTo("Updated annotation");
+//        assertThat(updatedEvent.getState()).isEqualTo(State.PUBLISHED);
+//    }
 }
