@@ -1,7 +1,6 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,21 +10,14 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.client.RestTemplate;
-import ru.practicum.EventsClient;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.events.EventsControllerAdmin;
 import ru.practicum.admin_api.users.model.User;
-import ru.practicum.dtos.events.SearchEventsDto;
 import ru.practicum.dtos.events.State;
-import ru.practicum.dtos.events.ViewStatsResponse;
 import ru.practicum.private_api.events.EventsController;
 import ru.practicum.private_api.events.EventsService;
 import ru.practicum.private_api.events.location.Location;
@@ -33,7 +25,6 @@ import ru.practicum.private_api.events.model.Event;
 import ru.practicum.private_api.events.model.NewEventDto;
 import ru.practicum.private_api.events.model.UpdateEventUserRequest;
 import ru.practicum.public_api.events.EventsControllerPublic;
-import ru.practicum.public_api.events.SearchEventsDtoFiltered;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -57,8 +48,6 @@ public class EventsControllerTest {
     @InjectMocks
     private EventsController controller;
 
-    @Mock
-    private EventsClient eventsClient;
 
     @InjectMocks
     private EventsControllerPublic eventsControllerPublic;

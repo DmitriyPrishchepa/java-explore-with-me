@@ -3,7 +3,6 @@ package ru.practicum.public_api.events;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.EventsClient;
@@ -17,7 +16,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,7 +23,12 @@ import java.util.Objects;
 @Validated
 public class EventsControllerPublic {
     private final EventsService service;
+
     private final EventsClient eventsClient;
+
+    private String startDate;
+    private String endDate;
+
 
     @GetMapping
     public List<Event> searchEventsFiltered(
@@ -41,10 +44,15 @@ public class EventsControllerPublic {
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
 
+        this.startDate = rangeStart;
+        this.endDate = rangeEnd;
+
         addHit(request);
 
-        ResponseEntity<List<ViewStatsResponse>> response = eventsClient.getStats(
-                "2021-01-01 00:00:00", "2027-01-01 00:00:00", null, false
+        List<ViewStatsResponse> response = eventsClient.getStats(
+                rangeStart,
+                rangeEnd,
+                null, false
         );
 
         List<Event> events = service.searchEventsFiltered(
@@ -60,9 +68,8 @@ public class EventsControllerPublic {
                         size)
         );
 
-        return setReviewsFromStats(events, Objects.requireNonNull(response.getBody()));
+        return setReviewsFromStats(events, response);
     }
-
 
 
     @GetMapping("/{id}")
@@ -77,15 +84,16 @@ public class EventsControllerPublic {
 
             Event event = service.getEventByIdAndPublished(idValue);
 
-            ResponseEntity<List<ViewStatsResponse>> response = eventsClient.getStats(
-                    "2021-01-01 00:00:00", "2027-01-01 00:00:00", null, false
+            // Используем сохраненные даты из полей класса
+            List<ViewStatsResponse> response = eventsClient.getStats(
+                    this.startDate,
+                    this.endDate,
+                    null, false
             );
 
-            List<Event> updated = setReviewsFromStats(List.of(event), Objects.requireNonNull(response.getBody()));
+            List<Event> updated = setReviewsFromStats(List.of(event), response);
 
             return updated.getFirst();
-
-
         } catch (NumberFormatException e) {
             throw new ApiError(
                     HttpStatus.BAD_REQUEST,

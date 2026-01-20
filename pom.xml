@@ -15,7 +15,6 @@
         <module>ewm-service</module>
 		<module>dtos</module>
 		<module>stats-server</module>
-		<module>client</module>
 	</modules>
 
     <groupId>ru.practicum</groupId>

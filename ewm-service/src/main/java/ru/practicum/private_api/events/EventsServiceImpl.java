@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import ru.practicum.EventsClient;
+
 import ru.practicum.admin_api.categories.CategoriesRepository;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.users.UserRepository;
@@ -39,8 +39,6 @@ public class EventsServiceImpl implements EventsService {
     private final LocationRepository locationRepository;
     private final UpdateEventValidator updateEventValidator;
     private final EventUpdater eventUpdater;
-
-    private final EventsClient eventsClient;
 
     @Override
     public Event addEvent(long userId, NewEventDto newEventDto) {
