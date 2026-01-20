@@ -1,9 +1,11 @@
 package ru.practicum;
 
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.lang.Nullable;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
+import ru.practicum.dtos.events.ViewStatsResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -15,7 +17,7 @@ public class BaseClient {
         this.rest = rest;
     }
 
-    protected ResponseEntity<Object> get(String path, Long userId, @Nullable Map<String, Object> parameters) {
+    protected ResponseEntity<List<ViewStatsResponse>> get(String path, Long userId, @Nullable Map<String, Object> parameters) {
         return makeAndSendRequest(HttpMethod.GET, path, userId, parameters, null);
     }
 
@@ -23,30 +25,33 @@ public class BaseClient {
         post("/hit", null, null, body);
     }
 
-    protected <T> ResponseEntity<Object> post(String path, Long userId, @Nullable Map<String, Object> parameters, T body) {
+    protected <T> ResponseEntity<List<ViewStatsResponse>> post(String path, Long userId, @Nullable Map<String, Object> parameters, T body) {
         return makeAndSendRequest(HttpMethod.POST, path, userId, parameters, body);
     }
 
-    protected <T> ResponseEntity<Object> put(String path, long userId, T body) {
-        return put(path, userId, null, body);
-    }
-
-    protected <T> ResponseEntity<Object> put(String path, long userId, @Nullable Map<String, Object> parameters, T body) {
-        return makeAndSendRequest(HttpMethod.PUT, path, userId, parameters, body);
-    }
-
-    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path, Long userId, @Nullable Map<String, Object> parameters, @Nullable T body) {
+    private <T> ResponseEntity<List<ViewStatsResponse>> makeAndSendRequest(HttpMethod method, String path, Long userId, @Nullable Map<String, Object> parameters, @Nullable T body) {
         HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders(userId));
 
-        ResponseEntity<Object> statsServerResponse;
+        ResponseEntity<List<ViewStatsResponse>> statsServerResponse;
         try {
             if (parameters != null) {
-                statsServerResponse = rest.exchange(path, method, requestEntity, Object.class, parameters);
+                statsServerResponse = rest.exchange(
+                        path,
+                        method,
+                        requestEntity,
+                        new ParameterizedTypeReference<>() {
+                        },
+                        parameters);
             } else {
-                statsServerResponse = rest.exchange(path, method, requestEntity, Object.class);
+                statsServerResponse = rest.exchange(
+                        path,
+                        method,
+                        requestEntity,
+                        new ParameterizedTypeReference<>() {
+                        });
             }
         } catch (HttpStatusCodeException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
+            return ResponseEntity.status(e.getStatusCode()).body(null);
         }
         return prepareStatsResponse(statsServerResponse);
     }
@@ -61,7 +66,7 @@ public class BaseClient {
         return headers;
     }
 
-    private static ResponseEntity<Object> prepareStatsResponse(ResponseEntity<Object> response) {
+    private ResponseEntity<List<ViewStatsResponse>> prepareStatsResponse(ResponseEntity<List<ViewStatsResponse>> response) {
         if (response.getStatusCode().is2xxSuccessful()) {
             return response;
         }

@@ -7,6 +7,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.dtos.events.EndpointHit;
+import ru.practicum.dtos.events.ViewStatsResponse;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +20,7 @@ public class EventsClient extends BaseClient {
     public EventsClient(RestTemplateBuilder builder) {
         super(
                 builder
-                        .uriTemplateHandler(new DefaultUriBuilderFactory("http://localhost:9090"))
+                        .uriTemplateHandler(new DefaultUriBuilderFactory("http://stats-server:9090"))
                         .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
                         .build());
     }
@@ -28,7 +29,7 @@ public class EventsClient extends BaseClient {
         post(endpointHit);
     }
 
-    protected ResponseEntity<Object> getStats(String start, String end, List<String> uris, boolean unique) {
+    public ResponseEntity<List<ViewStatsResponse>> getStats(String start, String end, List<String> uris, boolean unique) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("start", start);
         parameters.put("end", end);
