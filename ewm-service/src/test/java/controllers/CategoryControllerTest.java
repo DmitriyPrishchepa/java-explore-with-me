@@ -1,6 +1,5 @@
 package controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +17,7 @@ import ru.practicum.admin_api.categories.CategoryService;
 import ru.practicum.dtos.categories.CategoryDto;
 import ru.practicum.dtos.categories.NewCategoryDto;
 import ru.practicum.public_api.categories.CategoryControllerPublic;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;

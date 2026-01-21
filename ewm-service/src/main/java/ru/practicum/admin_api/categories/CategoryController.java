@@ -11,7 +11,6 @@ import ru.practicum.exception.exceptions.ApiError;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/admin/categories")
-@Validated
 public class CategoryController {
 
     private final CategoryService service;

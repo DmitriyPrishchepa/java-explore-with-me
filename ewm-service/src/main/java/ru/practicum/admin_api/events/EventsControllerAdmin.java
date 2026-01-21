@@ -13,7 +13,6 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/events")
-@Validated
 public class EventsControllerAdmin {
     private final EventsService eventsService;
 

@@ -1,11 +1,14 @@
 package ru.practicum.private_api.events.location;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 @Entity
 @Table(name = "locations")
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(of = {"id"})
 public class Location {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

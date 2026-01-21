@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 public class CompilationDto {
     private long id;
-    List<EventShortDto> events;
+    private List<EventShortDto> events;
     private boolean pinned;
     private String title;
 }

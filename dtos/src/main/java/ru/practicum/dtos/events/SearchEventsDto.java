@@ -1,6 +1,5 @@
 package ru.practicum.dtos.events;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.List;
@@ -12,9 +11,7 @@ public class SearchEventsDto {
     private List<Integer> categories;
     private String rangeStart;
     private String rangeEnd;
-    @JsonProperty(defaultValue = "0")
     private int from;
-    @JsonProperty(defaultValue = "10")
     private int size;
 
     public static SearchEventsDto of(

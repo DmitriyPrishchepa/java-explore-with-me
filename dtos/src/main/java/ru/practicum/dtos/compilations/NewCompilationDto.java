@@ -6,7 +6,7 @@ import java.util.List;
 
 @Data
 public class NewCompilationDto {
-    List<Integer> events; //Список идентификаторов событий входящих в подборку
+    private List<Integer> events; //Список идентификаторов событий входящих в подборку
     private boolean pinned; //закреплена ли подборка на главной странице сайта
     private String title;
 }

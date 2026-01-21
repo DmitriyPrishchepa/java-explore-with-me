@@ -16,7 +16,6 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/users")
-@Validated
 public class EventsController {
 
     private final EventsService eventsService;

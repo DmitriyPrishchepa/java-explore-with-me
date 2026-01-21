@@ -1,3 +1,4 @@
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,8 +51,7 @@ public class StatsControllerTest {
     void addEndPointHitTest() throws Exception {
         EndpointHit endpointHit = new EndpointHit();
         endpointHit.setId(1);
-        endpointHit.setApp("ewm-main-service");
-        endpointHit.setUri("/events/1");
+        endpointHit.setApp("ewhmc vents/1");
         endpointHit.setIp("192.163.0.1");
         endpointHit.setTimestamp("2022-09-06 11:00:23");
 

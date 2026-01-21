@@ -2,8 +2,7 @@ package ru.practicum.private_api.events.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.users.model.User;
 import ru.practicum.dtos.events.State;
@@ -11,7 +10,10 @@ import ru.practicum.private_api.events.location.Location;
 
 @Entity
 @Table(name = "events")
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(of = {"id"})
 public class Event {
 
     @Id

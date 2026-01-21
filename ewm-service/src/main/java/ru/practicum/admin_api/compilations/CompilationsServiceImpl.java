@@ -108,14 +108,16 @@ public class CompilationsServiceImpl implements CompilationsService {
         //ищем события по переданным id
         List<Event> events = eventsRepository.findByIdIn(request.getEvents());
 
-        //создаём новые связи и сохраняем их
+        List<CompilationEvents> compilationEvents = new ArrayList<>();
         for (Event event : events) {
             CompilationEvents compilationEvent = new CompilationEvents();
             compilationEvent.setCompilationId(compilation.getId());
             compilationEvent.setEventId(event.getId());
 
-            compilationEventsRepository.save(compilationEvent);
+            compilationEvents.add(compilationEvent);
         }
+
+        compilationEventsRepository.saveAll(compilationEvents);
 
         Compilation savedComp = compilationRepository.save(compilation);
 

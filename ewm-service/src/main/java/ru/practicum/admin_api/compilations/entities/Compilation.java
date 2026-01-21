@@ -1,11 +1,14 @@
 package ru.practicum.admin_api.compilations.entities;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 @Entity
 @Table(name = "compilations")
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(of = {"id"})
 public class Compilation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

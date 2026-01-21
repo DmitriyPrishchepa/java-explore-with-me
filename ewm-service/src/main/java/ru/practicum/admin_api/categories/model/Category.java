@@ -1,11 +1,14 @@
 package ru.practicum.admin_api.categories.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 @Entity
 @Table(name = "categories")
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(of = {"id"})
 public class Category {
 
     @Id

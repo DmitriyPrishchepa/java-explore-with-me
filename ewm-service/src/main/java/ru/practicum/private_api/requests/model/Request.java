@@ -1,12 +1,15 @@
 package ru.practicum.private_api.requests.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 import ru.practicum.dtos.requests.RequestStatus;
 
 @Entity
 @Table(name = "requests")
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(of = {"id"})
 public class Request {
 
     @Id

@@ -1,6 +1,7 @@
 package ru.practicum;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,9 @@ import java.util.List;
 @Slf4j
 public class EventsClient {
     protected final RestTemplate rest;
-    private static final String BASE_URL = "http://stats-server:9090";
+
+    @Value("${stats.server.url}")
+    private String BASE_URL;
 
     public EventsClient(RestTemplate restTemplate) {
         this.rest = restTemplate;
@@ -30,23 +33,14 @@ public class EventsClient {
 
     public List<ViewStatsResponse> getStats(String start, String end, List<String> uris, Boolean unique) {
         if (start == null || end == null) {
-            System.out.println("Даты начала и окончания должны быть заданы");
             throw new IllegalArgumentException("Даты начала и окончания должны быть заданы");
         }
-
-
-        System.out.println("start date: " + start);
-        System.out.println("end date: " + end);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"); // Укажите правильный формат
         LocalDateTime startDate = LocalDateTime.parse(start, formatter);
         LocalDateTime endDate = LocalDateTime.parse(end, formatter);
 
-        System.out.println("Parsed start date: " + startDate.format(formatter));
-        System.out.println("Parsed end date: " + endDate.format(formatter));
-
         if (endDate.isBefore(startDate)) {
-            System.out.println("Дата окончания должна быть позже даты начала");
             throw new IllegalArgumentException("Дата окончания должна быть позже даты начала");
         }
 
@@ -57,12 +51,10 @@ public class EventsClient {
 
         if (uris != null && !uris.isEmpty()) {
             uriComponentsBuilder.queryParam("uris", uris);
-            System.out.println("Added uris to query: " + uris);
         }
 
         if (unique != null) {
             uriComponentsBuilder.queryParam("unique", unique);
-            System.out.println("Added unique flag to query: " + unique);
         }
 
         ParameterizedTypeReference<List<ViewStatsResponse>> typeRef = new ParameterizedTypeReference<List<ViewStatsResponse>>() {
@@ -70,8 +62,6 @@ public class EventsClient {
         };
 
         String uriString = uriComponentsBuilder.build(false).toUriString();
-
-        System.out.println("URISTRING " + uriString);
 
         try {
             ResponseEntity<List<ViewStatsResponse>> response = rest.exchange(
@@ -82,7 +72,6 @@ public class EventsClient {
                     }
             );
             List<ViewStatsResponse> result = response.getBody();
-            System.out.println("Received result: " + result);
             return result;
         } catch (Exception e) {
             System.out.print("Error occurred while making request: ");

@@ -1,12 +1,13 @@
 package ru.practicum.admin_api.users.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 @Entity
 @Table(name = "users")
-@Data
+@Getter
+@Setter
+@ToString
 @EqualsAndHashCode(of = {"id"})
 public class User {
 

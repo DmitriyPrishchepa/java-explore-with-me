@@ -13,7 +13,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/categories")
 @RequiredArgsConstructor
-@Validated
 public class CategoryControllerPublic {
     private final CategoryService service;
 

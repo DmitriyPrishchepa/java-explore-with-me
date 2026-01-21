@@ -12,7 +12,6 @@ import ru.practicum.exception.exceptions.ApiError;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/admin/compilations")
-@Validated
 public class CompilationsController {
     private final CompilationsService service;
 
