@@ -904,7 +904,7 @@
                   "    pm.response.to.be.withBody;\r",
                   "    pm.response.to.be.json;\r",
                   "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData.length, 'List length must be 0').to.eql(0);\r",
+                  "    pm.expect(jsonData.length, 'List length must be 2').to.eql(2);\r",
                   "});\r",
                   ""
                 ],

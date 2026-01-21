@@ -235,11 +235,11 @@ public class EventsServiceImpl implements EventsService {
                     pageRequest);
         }
 
-        Map<Long, Long> views = getEventsView(
-                events.stream().map(Event::getId).toList(),
-                dto.getRangeStart(),
-                dto.getRangeEnd()
-        );
+//        Map<Long, Long> views = getEventsView(
+//                events.stream().map(Event::getId).toList(),
+//                dto.getRangeStart(),
+//                dto.getRangeEnd()
+//        );
 
         if (dto.getSort().equals(AvailableValues.EVENT_DATE.name())) {
             events = eventsRepository.findPublishedEventsWithTextSearchByDate(State.PUBLISHED, dto.getText(), pageRequest);
@@ -247,13 +247,13 @@ public class EventsServiceImpl implements EventsService {
             events = eventsRepository.findPublishedEventsWithTextSearchByViews(State.PUBLISHED, dto.getText(), pageRequest);
         }
 
-        for (Event event : events) {
-            Long eventId = event.getId();
-            if (views.containsKey(eventId)) {
-                int viewCount = views.get(eventId).intValue();
-                event.setViews(viewCount);
-            }
-        }
+//        for (Event event : events) {
+//            Long eventId = event.getId();
+//            if (views.containsKey(eventId)) {
+//                int viewCount = views.get(eventId).intValue();
+//                event.setViews(viewCount);
+//            }
+//        }
 
         return events;
     }
