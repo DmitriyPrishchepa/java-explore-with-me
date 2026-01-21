@@ -4,13 +4,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.EventsClient;
 import ru.practicum.admin_api.categories.CategoriesRepository;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.users.UserRepository;
 import ru.practicum.admin_api.users.model.User;
+import ru.practicum.dtos.events.EndpointHit;
 import ru.practicum.dtos.events.SearchEventsDto;
 import ru.practicum.dtos.events.State;
+import ru.practicum.dtos.events.ViewStatsResponse;
 import ru.practicum.exception.exceptions.ApiError;
 import ru.practicum.private_api.events.location.Location;
 import ru.practicum.private_api.events.mapper.EventMapper;
@@ -19,12 +22,15 @@ import ru.practicum.private_api.events.model.NewEventDto;
 import ru.practicum.private_api.events.model.UpdateEventUserRequest;
 import ru.practicum.private_api.events.validation.EventUpdater;
 import ru.practicum.private_api.events.validation.UpdateEventValidator;
+import ru.practicum.public_api.events.AvailableValues;
 import ru.practicum.public_api.events.SearchEventsDtoFiltered;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,11 +41,16 @@ public class EventsServiceImpl implements EventsService {
     private final UserRepository userRepository;
     private final CategoriesRepository categoriesRepository;
     private final EventMapper eventMapper;
-    private final UpdateEventValidator validator;
     private final LocationRepository locationRepository;
     private final UpdateEventValidator updateEventValidator;
     private final EventUpdater eventUpdater;
 
+    private final EventsClient statsClient;
+
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+
+    @Transactional
     @Override
     public Event addEvent(long userId, NewEventDto newEventDto) {
 
@@ -80,6 +91,7 @@ public class EventsServiceImpl implements EventsService {
         return eventsRepository.save(event);
     }
 
+    @Transactional
     @Override
     public Event updateEvent(long userId, long eventId, UpdateEventUserRequest request) {
         isUserExists(userId);
@@ -98,6 +110,7 @@ public class EventsServiceImpl implements EventsService {
         return eventsRepository.save(updatedEvent);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<Event> getEvents(long userId, int from, int size) {
         isUserExists(userId);
@@ -112,6 +125,7 @@ public class EventsServiceImpl implements EventsService {
         return events;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Event getEventById(long userId, long eventId) {
         isUserExists(userId);
@@ -119,6 +133,7 @@ public class EventsServiceImpl implements EventsService {
         return eventsRepository.findByInitiatorIdAndId(userId, eventId);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<Event> searchEvents(SearchEventsDto dto) {
         PageRequest pageRequest = PageRequest.of(dto.getFrom(), dto.getSize());
@@ -172,6 +187,7 @@ public class EventsServiceImpl implements EventsService {
         return events;
     }
 
+    @Transactional
     @Override
     public Event updateEventAndStatus(long eventId, UpdateEventUserRequest request) {
         Event event = eventsRepository.findById(eventId)
@@ -204,6 +220,7 @@ public class EventsServiceImpl implements EventsService {
         return eventsRepository.save(updatedEvent);
     }
 
+    @Transactional
     @Override
     public List<Event> searchEventsFiltered(SearchEventsDtoFiltered dto) {
         PageRequest pageRequest = PageRequest.of(dto.getFrom(), dto.getSize());
@@ -218,19 +235,32 @@ public class EventsServiceImpl implements EventsService {
                     pageRequest);
         }
 
-        for (Event event : events) {
-            event.setViews(event.getViews() + 1);
-            eventsRepository.save(event);
+        Map<Long, Long> views = getEventsView(
+                events.stream().map(Event::getId).toList(),
+                dto.getRangeStart(),
+                dto.getRangeEnd()
+        );
+
+        if (dto.getSort().equals(AvailableValues.EVENT_DATE.name())) {
+            events = eventsRepository.findPublishedEventsWithTextSearchByDate(State.PUBLISHED, dto.getText(), pageRequest);
+        } else if (dto.getSort().equals(AvailableValues.VIEWS.name())) {
+            events = eventsRepository.findPublishedEventsWithTextSearchByViews(State.PUBLISHED, dto.getText(), pageRequest);
         }
 
-        //информация о событии должна включать в себя количество просмотров и количество подтвержденных запросов
-        //надо обращаться к сервису статистики
+        for (Event event : events) {
+            Long eventId = event.getId();
+            if (views.containsKey(eventId)) {
+                int viewCount = views.get(eventId).intValue();
+                event.setViews(viewCount);
+            }
+        }
 
         return events;
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public Event getEventByIdAndPublished(long id) {
+    public Event getEventByIdAndPublished(long id, String uri, String addr) {
         Event event = eventsRepository.findById(id)
                 .orElseThrow(() -> new ApiError(
                         HttpStatus.NOT_FOUND,
@@ -245,16 +275,7 @@ public class EventsServiceImpl implements EventsService {
                     "Event must be PUBLISHED");
         }
 
-        //информация о событии должна включать в себя количество просмотров и количество подтвержденных запросов
-        //надо обращаться к сервису статистики
-
-        // Получение количества просмотров
-//        long viewsCount = viewService.getViewsCount(id);
-//        event.setViews(viewsCount);
-//
-//        // Получение количества подтвержденных запросов
-//        long confirmedRequestsCount = requestService.getConfirmedRequestsCount(id);
-//        event.setConfirmedRequests(confirmedRequestsCount);
+        addHit(uri, addr);
 
         return event;
     }
@@ -281,5 +302,42 @@ public class EventsServiceImpl implements EventsService {
                     "The required object was not found.",
                     "Category with id=" + id + " was not found");
         }
+    }
+
+    private void addHit(String uri, String ip) {
+        EndpointHit hit = new EndpointHit();
+        hit.setUri(uri);
+        hit.setApp("ewm-service");
+        hit.setIp(ip);
+
+        String addHitTime = LocalDateTime.now().format(formatter);
+        hit.setTimestamp(addHitTime);
+
+        statsClient.addHits(hit);
+    }
+
+    private Map<Long, Long> getEventsView(List<Long> ids, String start, String end) {
+        List<String> uris = ids.stream()
+                .map(id -> "/events/" + id)
+                .toList();
+
+        List<ViewStatsResponse> stats = statsClient.getStats(
+                start,
+                end,
+                uris,
+                false
+        );
+
+        if (stats.isEmpty()) {
+            return new HashMap<>();
+        }
+
+        return stats.stream()
+                .map(viewStatsDto -> {
+                    String eventIdStr = viewStatsDto.getUri().substring("/events/".length());
+                    Long eventId = Long.parseLong(eventIdStr);
+                    return Map.entry(eventId, viewStatsDto.getHits());
+                }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
     }
 }

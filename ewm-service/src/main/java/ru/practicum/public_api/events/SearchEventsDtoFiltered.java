@@ -18,6 +18,8 @@ public class SearchEventsDtoFiltered {
     private int from;
     @JsonProperty(defaultValue = "10")
     private int size;
+    private String remoteAddr;
+    private String requestUri;
 
     public static SearchEventsDtoFiltered of(
             String text,
@@ -28,7 +30,9 @@ public class SearchEventsDtoFiltered {
             boolean onlyAvailable,
             String sort,
             int from,
-            int size
+            int size,
+            String remoteAddr,
+            String requestUri
     ) {
         SearchEventsDtoFiltered searchEventsDtoFiltered = new SearchEventsDtoFiltered();
         searchEventsDtoFiltered.setText(text);
@@ -40,6 +44,8 @@ public class SearchEventsDtoFiltered {
         searchEventsDtoFiltered.setSort(sort);
         searchEventsDtoFiltered.setFrom(from);
         searchEventsDtoFiltered.setSize(size);
+        searchEventsDtoFiltered.setRemoteAddr(remoteAddr);
+        searchEventsDtoFiltered.setRequestUri(requestUri);
         return searchEventsDtoFiltered;
     }
 }

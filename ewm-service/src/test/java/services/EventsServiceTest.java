@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import ru.practicum.EventsClient;
 import ru.practicum.admin_api.categories.CategoriesRepository;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.users.UserRepository;
@@ -41,6 +42,9 @@ public class EventsServiceTest {
 
     @Mock
     EventsRepository eventsRepository;
+
+    @Mock
+    EventsClient eventsClient;
 
     @Mock
     EventUpdater eventUpdater;
@@ -312,10 +316,10 @@ public class EventsServiceTest {
         event.setId(1L);
         event.setState(State.PUBLISHED);
 
-        Mockito.when(service.getEventByIdAndPublished(Mockito.anyLong()))
+        Mockito.when(service.getEventByIdAndPublished(Mockito.anyLong(), Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(event);
 
-        Event returnedEvent = service.getEventByIdAndPublished(1L);
+        Event returnedEvent = service.getEventByIdAndPublished(1L, "/events/1", "aaa");
         assertNotNull(returnedEvent);
     }
 
@@ -323,11 +327,11 @@ public class EventsServiceTest {
     void getEventByIdAndPublished_EventNotFound() {
         long nonExistingEventId = 999L;
 
-        Mockito.when(service.getEventByIdAndPublished(Mockito.anyLong()))
+        Mockito.when(service.getEventByIdAndPublished(Mockito.anyLong(), Mockito.anyString(), Mockito.anyString()))
                 .thenThrow(ApiError.class);
 
         assertThrows(ApiError.class, () -> {
-            service.getEventByIdAndPublished(nonExistingEventId);
+            service.getEventByIdAndPublished(nonExistingEventId, "/events/1", "aaa");
         });
     }
 

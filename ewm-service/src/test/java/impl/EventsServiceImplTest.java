@@ -11,6 +11,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import ru.practicum.EventsClient;
 import ru.practicum.admin_api.categories.CategoriesRepository;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.users.UserRepository;
@@ -29,6 +30,7 @@ import ru.practicum.private_api.events.model.NewEventDto;
 import ru.practicum.private_api.events.model.UpdateEventUserRequest;
 import ru.practicum.private_api.events.validation.EventUpdater;
 import ru.practicum.private_api.events.validation.UpdateEventValidator;
+import ru.practicum.public_api.events.AvailableValues;
 import ru.practicum.public_api.events.SearchEventsDtoFiltered;
 
 import java.util.ArrayList;
@@ -49,6 +51,9 @@ public class EventsServiceImplTest {
 
     @Mock
     EventsService service;
+
+    @Mock
+    EventsClient client;
 
     @Mock
     LocationRepository locationRepository;
@@ -269,6 +274,7 @@ public class EventsServiceImplTest {
         dto.setText("Сплав");
         dto.setFrom(0);
         dto.setSize(10);
+        dto.setSort(AvailableValues.EVENT_DATE.name());
 
         List<Event> eventsList = new ArrayList<>();
         Event event1 = new Event();
@@ -282,6 +288,18 @@ public class EventsServiceImplTest {
                 Mockito.any(State.class),
                 Mockito.anyString(),
                 Mockito.any(PageRequest.class)))
+                .thenReturn(eventsList);
+
+        Mockito.when(eventsRepository.findPublishedEventsWithTextSearchByDate(
+                        Mockito.any(State.class),
+                        Mockito.anyString(),
+                        Mockito.any(PageRequest.class)))
+                .thenReturn(eventsList);
+
+        Mockito.when(eventsRepository.findPublishedEventsWithTextSearchByViews(
+                        Mockito.any(State.class),
+                        Mockito.anyString(),
+                        Mockito.any(PageRequest.class)))
                 .thenReturn(eventsList);
 
         List<Event> events = impl.searchEventsFiltered(dto);
@@ -300,7 +318,7 @@ public class EventsServiceImplTest {
         when(eventsRepository.findById(anyLong()))
                 .thenReturn(Optional.of(event));
 
-        Event returnedEvent = impl.getEventByIdAndPublished(1L);
+        Event returnedEvent = impl.getEventByIdAndPublished(1L, "/events/1", "aaa");
         assertEquals(event, returnedEvent);
     }
 
@@ -312,7 +330,7 @@ public class EventsServiceImplTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(ApiError.class, () -> {
-            impl.getEventByIdAndPublished(nonExistingEventId);
+            impl.getEventByIdAndPublished(nonExistingEventId, "/events/1", "aaa");
         });
     }
 

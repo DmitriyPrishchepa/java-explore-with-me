@@ -63,4 +63,20 @@ public interface EventsRepository extends JpaRepository<Event, Long> {
     List<Event> findByEventDateBetween(
             @Param("rangeStart") String rangeStart,
             @Param("rangeEnd") String rangeEnd);
+
+    @Query("SELECT e FROM Event e WHERE e.state = :state " +
+            "AND (LOWER(e.annotation) LIKE LOWER(CONCAT('%', :text, '%')) " +
+            "OR LOWER(e.description) LIKE LOWER(CONCAT('%', :text, '%'))) " +
+            "ORDER BY e.eventDate DESC")
+    List<Event> findPublishedEventsWithTextSearchByDate(
+            @Param("state") State state,
+            @Param("text") String text, Pageable pageable);
+
+    @Query("SELECT e FROM Event e WHERE e.state = :state " +
+            "AND (LOWER(e.annotation) LIKE LOWER(CONCAT('%', :text, '%')) " +
+            "OR LOWER(e.description) LIKE LOWER(CONCAT('%', :text, '%'))) " +
+            "ORDER BY e.views DESC")
+    List<Event> findPublishedEventsWithTextSearchByViews(
+            @Param("state") State state,
+            @Param("text") String text, Pageable pageable);
 }

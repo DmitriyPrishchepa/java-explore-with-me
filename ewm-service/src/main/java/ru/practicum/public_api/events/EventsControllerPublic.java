@@ -6,15 +6,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.EventsClient;
-import ru.practicum.dtos.events.EndpointHit;
-import ru.practicum.dtos.events.ViewStatsResponse;
 import ru.practicum.exception.exceptions.ApiError;
 import ru.practicum.private_api.events.EventsService;
 import ru.practicum.private_api.events.model.Event;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -26,13 +21,8 @@ public class EventsControllerPublic {
 
     private final EventsClient eventsClient;
 
-    private String startDate;
-    private String endDate;
-
-
     @GetMapping
     public List<Event> searchEventsFiltered(
-            HttpServletRequest request,
             @RequestParam("text") String text,
             @RequestParam("categories") List<Integer> categories,
             @RequestParam("paid") boolean paid,
@@ -41,21 +31,11 @@ public class EventsControllerPublic {
             @RequestParam(value = "onlyAvailable", defaultValue = "false") boolean onlyAvailable,
             @RequestParam("sort") String sort,
             @RequestParam(value = "from", defaultValue = "0") int from,
-            @RequestParam(value = "size", defaultValue = "10") int size
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            HttpServletRequest request
     ) {
 
-        this.startDate = rangeStart;
-        this.endDate = rangeEnd;
-
-        addHit(request);
-
-        List<ViewStatsResponse> response = eventsClient.getStats(
-                rangeStart,
-                rangeEnd,
-                null, false
-        );
-
-        List<Event> events = service.searchEventsFiltered(
+        return service.searchEventsFiltered(
                 SearchEventsDtoFiltered.of(
                         text,
                         categories,
@@ -65,35 +45,22 @@ public class EventsControllerPublic {
                         onlyAvailable,
                         sort,
                         from,
-                        size)
+                        size,
+                        request.getRemoteAddr(),
+                        request.getRequestURI())
         );
-
-        return setReviewsFromStats(events, response);
     }
 
 
     @GetMapping("/{id}")
     public Event getEventByIdAndPublished(
-            HttpServletRequest request,
-            @PathVariable("id") long id
+            @PathVariable("id") long id,
+            HttpServletRequest request
     ) {
         try {
             int idValue = Integer.parseInt(String.valueOf(id));
 
-            addHit(request);
-
-            Event event = service.getEventByIdAndPublished(idValue);
-
-            // Используем сохраненные даты из полей класса
-            List<ViewStatsResponse> response = eventsClient.getStats(
-                    this.startDate,
-                    this.endDate,
-                    null, false
-            );
-
-            List<Event> updated = setReviewsFromStats(List.of(event), response);
-
-            return updated.getFirst();
+            return service.getEventByIdAndPublished(idValue, request.getRequestURI(), request.getRemoteAddr());
         } catch (NumberFormatException e) {
             throw new ApiError(
                     HttpStatus.BAD_REQUEST,
@@ -103,40 +70,4 @@ public class EventsControllerPublic {
             );
         }
     }
-
-    private void addHit(HttpServletRequest request) {
-
-        String userIp = request.getRemoteAddr();
-        String requestUri = request.getRequestURI();
-
-        EndpointHit endpointHit = new EndpointHit();
-        endpointHit.setApp("ewm-service");
-        endpointHit.setUri(requestUri);
-        endpointHit.setIp(userIp);
-        endpointHit.setTimestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-
-        eventsClient.addHits(endpointHit);
-    }
-
-    private List<Event> setReviewsFromStats(
-            List<Event> events,
-            List<ViewStatsResponse> stats
-    ) {
-        // мапа для хранения количества просмотров по идентификатору события
-        HashMap<String, Long> viewsMap = new HashMap<>();
-        for (ViewStatsResponse stat : stats) {
-            viewsMap.put(stat.getUri(), stat.getHits());
-        }
-
-        //записываем кол-во посмотров из статистики в события
-        for (Event event : events) {
-            Long views = viewsMap.get(String.valueOf(event.getId()));
-            if (views != null) {
-                event.setViews(views.intValue());
-            }
-        }
-
-        return events;
-    }
-
 }

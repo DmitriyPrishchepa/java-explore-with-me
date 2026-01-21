@@ -918,7 +918,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/events?text=Сплав&categories=1&paid=true&rangeStart=2021-01-01&rangeEnd=2026-12-31&onlyAvailable=false&sort=title&from=0&size=10 ",
+              "raw": "{{baseUrl}}/events?text=Сплав&categories=1&paid=true&rangeStart=2021-01-01%2000:00:00&rangeEnd=2026-12-31%2023:59:59&onlyAvailable=false&sort=EVENT_DATE&from=0&size=10",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -940,11 +940,11 @@
                 },
                 {
                   "key": "rangeStart",
-                  "value": "2021-01-01"
+                  "value": "2021-01-01%2000:00:00"
                 },
                 {
                   "key": "rangeEnd",
-                  "value": "2026-12-31"
+                  "value": "2026-12-31%2023:59:59"
                 },
                 {
                   "key": "onlyAvailable",
@@ -952,7 +952,7 @@
                 },
                 {
                   "key": "sort",
-                  "value": "title"
+                  "value": "EVENT_DATE"
                 },
                 {
                   "key": "from",
@@ -960,7 +960,7 @@
                 },
                 {
                   "key": "size",
-                  "value": "10 "
+                  "value": "10"
                 }
               ]
             }
@@ -1032,7 +1032,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin/events?users=1&states=PUBLISHED&categories=1&rangeStart=2021-01-01%2000:00:00&rangeEnd=2025-12-31%2023:59:59&from=0&size=10\n",
+              "raw": "{{baseUrl}}/admin/events?users=1&states=PUBLISHED&categories=1&rangeStart=2024-01-01%2000:00:00&rangeEnd=2025-12-31%2023:59:59&from=0&size=10\n",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1055,7 +1055,7 @@
                 },
                 {
                   "key": "rangeStart",
-                  "value": "2021-01-01%2000:00:00"
+                  "value": "2024-01-01%2000:00:00"
                 },
                 {
                   "key": "rangeEnd",

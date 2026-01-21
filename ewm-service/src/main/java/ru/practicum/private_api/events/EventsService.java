@@ -23,5 +23,5 @@ public interface EventsService {
 
     List<Event> searchEventsFiltered(SearchEventsDtoFiltered dto);
 
-    Event getEventByIdAndPublished(long id);
+    Event getEventByIdAndPublished(long id, String uri, String addr);
 }

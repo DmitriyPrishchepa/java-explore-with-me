@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.admin_api.categories.mapper.CategoryMapper;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.dtos.categories.CategoryDto;
@@ -23,6 +24,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final RequestsRepository requestsRepository;
     private final CategoryMapper mapper;
 
+    @Transactional
     @Override
     public CategoryDto createCategory(NewCategoryDto dto) {
 
@@ -34,6 +36,7 @@ public class CategoryServiceImpl implements CategoryService {
         return mapper.mapToDto(saved);
     }
 
+    @Transactional
     @Override
     public CategoryDto updateCategory(long categoryId, NewCategoryDto dto) {
         checkExistsCategory(categoryId);
@@ -46,18 +49,21 @@ public class CategoryServiceImpl implements CategoryService {
         return mapper.mapToDto(savedCategory);
     }
 
+    @Transactional
     @Override
     public void deleteCategory(long categoryId) {
         checkExistsCategory(categoryId);
         repository.deleteById(categoryId);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<CategoryDto> getCategories(int from, int size) {
         List<Category> cats = repository.findAll(PageRequest.of(from, size)).getContent();
         return cats.stream().map(mapper::mapToDto).toList();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public CategoryDto getCategoryById(long id) {
         if (!repository.existsById(id)) {

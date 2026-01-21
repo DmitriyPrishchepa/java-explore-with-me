@@ -130,6 +130,7 @@ public class CompilationsServiceImpl implements CompilationsService {
         return resultDto;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<CompilationDto> getCompilations(boolean pinned, int from, int size) {
         PageRequest pageRequest = PageRequest.of(from, size);
@@ -160,6 +161,7 @@ public class CompilationsServiceImpl implements CompilationsService {
         return compilationDtos;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public CompilationDto getCompilationById(long compId) {
 
@@ -189,6 +191,7 @@ public class CompilationsServiceImpl implements CompilationsService {
         return resultDto;
     }
 
+    @Transactional(readOnly = true)
     private List<Event> getEventsByCompilationId(long compilationId, PageRequest pageRequest) {
         // Получаем все записи, связывающие подборку и события
         List<CompilationEvents> compilationEvents = compilationEventsRepository.findByCompilationId(compilationId);
