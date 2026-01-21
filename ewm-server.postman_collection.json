@@ -918,7 +918,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/events?text=Сплав&categories=1&paid=true&rangeStart=2021-01-01%2000:00:00&rangeEnd=2026-12-31%2023:59:59&onlyAvailable=false&sort=EVENT_DATE&from=0&size=10",
+              "raw": "{{baseUrl}}/events?text=Сплав&categories=1&paid=true&rangeStart=2022-12-12%2000:00:00&rangeEnd=2023-12-12%2023:59:59&onlyAvailable=false&sort=EVENT_DATE&from=0&size=10",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -940,11 +940,11 @@
                 },
                 {
                   "key": "rangeStart",
-                  "value": "2021-01-01%2000:00:00"
+                  "value": "2022-12-12%2000:00:00"
                 },
                 {
                   "key": "rangeEnd",
-                  "value": "2026-12-31%2023:59:59"
+                  "value": "2023-12-12%2023:59:59"
                 },
                 {
                   "key": "onlyAvailable",

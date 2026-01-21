@@ -34,12 +34,16 @@ public class EventsClient {
             throw new IllegalArgumentException("Даты начала и окончания должны быть заданы");
         }
 
+
+        System.out.println("start date: " + start);
+        System.out.println("end date: " + end);
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"); // Укажите правильный формат
         LocalDateTime startDate = LocalDateTime.parse(start, formatter);
         LocalDateTime endDate = LocalDateTime.parse(end, formatter);
 
-        System.out.println("Parsed start date: " + startDate);
-        System.out.println("Parsed end date: " + endDate);
+        System.out.println("Parsed start date: " + startDate.format(formatter));
+        System.out.println("Parsed end date: " + endDate.format(formatter));
 
         if (endDate.isBefore(startDate)) {
             System.out.println("Дата окончания должна быть позже даты начала");
@@ -65,7 +69,9 @@ public class EventsClient {
 
         };
 
-        String uriString = uriComponentsBuilder.encode().toUriString();
+        String uriString = uriComponentsBuilder.build(false).toUriString();
+
+        System.out.println("URISTRING " + uriString);
 
         try {
             ResponseEntity<List<ViewStatsResponse>> response = rest.exchange(
@@ -81,26 +87,7 @@ public class EventsClient {
         } catch (Exception e) {
             System.out.print("Error occurred while making request: ");
             e.printStackTrace();
-            throw e; // или обработайте ошибку по-другому, например, верните null или пустой список
+            throw e;
         }
-
-//        try {
-//            String uriString = uriComponentsBuilder.encode().toUriString();
-//            System.out.println("Encoded URI: " + uriString);
-//
-//            List<ViewStatsResponse> result = rest.exchange(
-//                    uriString,
-//                    HttpMethod.GET,
-//                    null, typeRef)
-//                    .getBody();
-//            System.out.println("Received result: " + result);
-//            return result;
-//        } catch (Exception e) {
-//            System.out.print("Error occurred while making request: ");
-//            e.printStackTrace();
-//            throw e; // или обработайте ошибку по-другому, например, верните null или пустой список
-//        }
     }
 }
-
-

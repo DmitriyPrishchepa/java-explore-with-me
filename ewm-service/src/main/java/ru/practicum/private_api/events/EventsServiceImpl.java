@@ -49,7 +49,6 @@ public class EventsServiceImpl implements EventsService {
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-
     @Transactional
     @Override
     public Event addEvent(long userId, NewEventDto newEventDto) {
@@ -225,6 +224,7 @@ public class EventsServiceImpl implements EventsService {
     public List<Event> searchEventsFiltered(SearchEventsDtoFiltered dto) {
         PageRequest pageRequest = PageRequest.of(dto.getFrom(), dto.getSize());
 
+
         List<Event> events;
         if (dto.getRangeStart() == null || dto.getRangeEnd() == null) {
             events = eventsRepository.findPublishedEventsWithTextSearch(State.PUBLISHED, dto.getText(), pageRequest);
@@ -235,11 +235,13 @@ public class EventsServiceImpl implements EventsService {
                     pageRequest);
         }
 
-//        Map<Long, Long> views = getEventsView(
-//                events.stream().map(Event::getId).toList(),
-//                dto.getRangeStart(),
-//                dto.getRangeEnd()
-//        );
+        addHit(dto.getRequestUri(), dto.getRemoteAddr());
+
+        Map<Long, Long> views = getEventsView(
+                events.stream().map(Event::getId).toList(),
+                dto.getRangeStart(),
+                dto.getRangeEnd()
+        );
 
         if (dto.getSort().equals(AvailableValues.EVENT_DATE.name())) {
             events = eventsRepository.findPublishedEventsWithTextSearchByDate(State.PUBLISHED, dto.getText(), pageRequest);
@@ -247,13 +249,13 @@ public class EventsServiceImpl implements EventsService {
             events = eventsRepository.findPublishedEventsWithTextSearchByViews(State.PUBLISHED, dto.getText(), pageRequest);
         }
 
-//        for (Event event : events) {
-//            Long eventId = event.getId();
-//            if (views.containsKey(eventId)) {
-//                int viewCount = views.get(eventId).intValue();
-//                event.setViews(viewCount);
-//            }
-//        }
+        for (Event event : events) {
+            Long eventId = event.getId();
+            if (views.containsKey(eventId)) {
+                int viewCount = views.get(eventId).intValue();
+                event.setViews(viewCount);
+            }
+        }
 
         return events;
     }
@@ -276,6 +278,9 @@ public class EventsServiceImpl implements EventsService {
         }
 
         addHit(uri, addr);
+
+        int views = (int) getEventView(event.getId());
+        event.setViews(views);
 
         return event;
     }
@@ -314,6 +319,19 @@ public class EventsServiceImpl implements EventsService {
         hit.setTimestamp(addHitTime);
 
         statsClient.addHits(hit);
+    }
+
+    private long getEventView(long eventId) {
+        List<String> uris = List.of("/events/" + eventId);
+
+        List<ViewStatsResponse> stats = statsClient.getStats(
+                LocalDateTime.of(2022, 12, 21, 12, 12, 12).format(formatter),
+                LocalDateTime.now().format(formatter),
+                uris,
+                true
+        );
+
+        return stats.isEmpty() ? 0L : stats.getFirst().getHits();
     }
 
     private Map<Long, Long> getEventsView(List<Long> ids, String start, String end) {

@@ -32,12 +32,15 @@ services:
     container_name: ewm-service
     ports:
       - "8080:8080"
+      - "5005:5005"
     depends_on:
       - ewm-db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewm-service
-      - SPRING_DATASOURCE_USERNAME=ewm-service
-      - SPRING_DATASOURCE_PASSWORD=ewm-service
+      SPRING_DATASOURCE_URL: 'jdbc:postgresql://ewm-db:5432/ewm-service'
+      SPRING_DATASOURCE_USERNAME: 'ewm-service'
+      SPRING_DATASOURCE_PASSWORD: 'ewm-service'
+      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+
 
   ewm-db:
     image: postgres:16.1
