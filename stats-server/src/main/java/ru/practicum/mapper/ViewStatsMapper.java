@@ -2,8 +2,8 @@ package ru.practicum.mapper;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import ru.practicum.dtos.events.ViewStats;
-import ru.practicum.dtos.events.ViewStatsResponse;
+import ru.practicum.dtos.events.stats.ViewStats;
+import ru.practicum.dtos.events.stats.ViewStatsResponse;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ViewStatsMapper {

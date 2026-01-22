@@ -2,7 +2,6 @@ package ru.practicum.private_api.requests;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dtos.events.EventRequestStatusUpdateRequest;
 import ru.practicum.dtos.events.EventRequestStatusUpdateResult;

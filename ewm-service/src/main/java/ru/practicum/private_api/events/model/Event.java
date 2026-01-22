@@ -2,10 +2,13 @@ package ru.practicum.private_api.events.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.users.model.User;
-import ru.practicum.dtos.events.State;
+import ru.practicum.dtos.events.states.State;
 import ru.practicum.private_api.events.location.Location;
 
 @Entity
@@ -63,4 +66,7 @@ public class Event {
 
     @Enumerated(EnumType.STRING)
     private State state; //Список состояний жизненного цикла события
+
+    private int likes = 0;
+    private int dislikes = 0;
 }

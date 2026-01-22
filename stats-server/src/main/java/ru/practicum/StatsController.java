@@ -2,10 +2,9 @@ package ru.practicum;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.dtos.events.EndpointHit;
-import ru.practicum.dtos.events.ViewStatsResponse;
+import ru.practicum.dtos.events.stats.EndpointHit;
+import ru.practicum.dtos.events.stats.ViewStatsResponse;
 
 import java.util.List;
 

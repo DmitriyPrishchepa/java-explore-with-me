@@ -1,4 +1,4 @@
-package ru.practicum.public_api.events;
+package ru.practicum.dtos.events;
 
 import lombok.Data;
 

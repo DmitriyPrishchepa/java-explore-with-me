@@ -2,7 +2,6 @@ package ru.practicum.admin_api.categories;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dtos.categories.CategoryDto;
 import ru.practicum.dtos.categories.NewCategoryDto;

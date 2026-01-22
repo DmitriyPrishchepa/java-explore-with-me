@@ -16,8 +16,11 @@ import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.users.UserRepository;
 import ru.practicum.admin_api.users.model.User;
 import ru.practicum.dtos.events.SearchEventsDto;
-import ru.practicum.dtos.events.State;
-import ru.practicum.dtos.events.StateAction;
+import ru.practicum.dtos.events.SearchEventsDtoFiltered;
+import ru.practicum.dtos.events.ratings.Rating;
+import ru.practicum.dtos.events.ratings.UpdateRatingDto;
+import ru.practicum.dtos.events.states.State;
+import ru.practicum.dtos.events.states.StateAction;
 import ru.practicum.exception.exceptions.ApiError;
 import ru.practicum.private_api.events.EventsRepository;
 import ru.practicum.private_api.events.EventsService;
@@ -28,7 +31,6 @@ import ru.practicum.private_api.events.model.NewEventDto;
 import ru.practicum.private_api.events.model.UpdateEventUserRequest;
 import ru.practicum.private_api.events.validation.EventUpdater;
 import ru.practicum.private_api.events.validation.UpdateEventValidator;
-import ru.practicum.public_api.events.SearchEventsDtoFiltered;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -397,11 +399,35 @@ public class EventsServiceTest {
         Mockito.when(service.updateEventAndStatus(Mockito.anyLong(), Mockito.any(UpdateEventUserRequest.class)))
                 .thenReturn(event);
 
-        // Выполнение метода
+
         Event updatedEvent = service.updateEventAndStatus(eventId, request);
 
-        // Проверки
         assertThat(updatedEvent.getAnnotation()).isEqualTo("Updated annotation");
         assertThat(updatedEvent.getState()).isEqualTo(State.PUBLISHED);
+    }
+
+    @Test
+    void updateRatingTest_Success() {
+        UpdateRatingDto dto = new UpdateRatingDto();
+        dto.setEventId(1L);
+        dto.setUserId(1L);
+        dto.setRating("LIKE");
+
+        Event event = new Event();
+        event.setId(1L);
+        event.setState(State.PUBLISHED);
+
+        Rating ratingToSave = new Rating();
+        ratingToSave.setEventId(dto.getEventId());
+        ratingToSave.setUserId(dto.getUserId());
+        ratingToSave.setRating(1);
+
+        Mockito.when(service.updateRating(Mockito.any(UpdateRatingDto.class)))
+                .thenReturn(ratingToSave);
+
+        // Вызываем тестируемый метод
+        Rating updatedRating = service.updateRating(dto);
+
+        assertNotNull(updatedRating);
     }
 }

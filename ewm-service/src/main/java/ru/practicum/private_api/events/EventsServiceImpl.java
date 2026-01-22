@@ -10,10 +10,16 @@ import ru.practicum.admin_api.categories.CategoriesRepository;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.users.UserRepository;
 import ru.practicum.admin_api.users.model.User;
-import ru.practicum.dtos.events.EndpointHit;
 import ru.practicum.dtos.events.SearchEventsDto;
-import ru.practicum.dtos.events.State;
-import ru.practicum.dtos.events.ViewStatsResponse;
+import ru.practicum.dtos.events.SearchEventsDtoFiltered;
+import ru.practicum.dtos.events.ratings.AuthorRatingDto;
+import ru.practicum.dtos.events.ratings.EventRatingDto;
+import ru.practicum.dtos.events.ratings.Rating;
+import ru.practicum.dtos.events.ratings.UpdateRatingDto;
+import ru.practicum.dtos.events.states.AvailableValues;
+import ru.practicum.dtos.events.states.State;
+import ru.practicum.dtos.events.stats.EndpointHit;
+import ru.practicum.dtos.events.stats.ViewStatsResponse;
 import ru.practicum.exception.exceptions.ApiError;
 import ru.practicum.private_api.events.location.Location;
 import ru.practicum.private_api.events.mapper.EventMapper;
@@ -21,9 +27,8 @@ import ru.practicum.private_api.events.model.Event;
 import ru.practicum.private_api.events.model.NewEventDto;
 import ru.practicum.private_api.events.model.UpdateEventUserRequest;
 import ru.practicum.private_api.events.validation.EventUpdater;
+import ru.practicum.private_api.events.validation.RatingUpdateValidator;
 import ru.practicum.private_api.events.validation.UpdateEventValidator;
-import ru.practicum.public_api.events.AvailableValues;
-import ru.practicum.public_api.events.SearchEventsDtoFiltered;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -44,6 +49,8 @@ public class EventsServiceImpl implements EventsService {
     private final LocationRepository locationRepository;
     private final UpdateEventValidator updateEventValidator;
     private final EventUpdater eventUpdater;
+    private final RatingRepository ratingRepository;
+    private final RatingUpdateValidator ratingUpdateValidator;
 
     private final EventsClient statsClient;
 
@@ -129,7 +136,13 @@ public class EventsServiceImpl implements EventsService {
     public Event getEventById(long userId, long eventId) {
         isUserExists(userId);
         isEventExists(eventId);
-        return eventsRepository.findByInitiatorIdAndId(userId, eventId);
+        Event event = eventsRepository.findByInitiatorIdAndId(userId, eventId);
+
+        //проставление лайков и дизлайков
+        event.setLikes(getLikesForEvent(event.getId()));
+        event.setDislikes(getDislikesForEvent(event.getId()));
+
+        return event;
     }
 
     @Transactional(readOnly = true)
@@ -183,6 +196,14 @@ public class EventsServiceImpl implements EventsService {
             events = eventsRepository.findByEventDateBetween(startDateString, endDateString);
         }
 
+        //проставление лайков и дизлайков
+        events = events.stream()
+                .peek(event -> {
+                    event.setLikes(getLikesForEvent(event.getId()));
+                    event.setDislikes(getDislikesForEvent(event.getId()));
+                })
+                .collect(Collectors.toList());
+
         return events;
     }
 
@@ -216,7 +237,13 @@ public class EventsServiceImpl implements EventsService {
 
         Event updatedEvent = eventUpdater.updateEvent(event, category, request);
 
-        return eventsRepository.save(updatedEvent);
+        Event updatedSavedEvent = eventsRepository.save(updatedEvent);
+
+        //проставление лайков и дизлайков
+        updatedSavedEvent.setLikes(getLikesForEvent(updatedSavedEvent.getId()));
+        updatedSavedEvent.setLikes(getDislikesForEvent(updatedSavedEvent.getId()));
+
+        return updatedSavedEvent;
     }
 
     @Transactional
@@ -257,6 +284,14 @@ public class EventsServiceImpl implements EventsService {
             }
         }
 
+        //проставление лайков и дизлайков
+        events = events.stream()
+                .peek(event -> {
+                    event.setLikes(getLikesForEvent(event.getId()));
+                    event.setDislikes(getDislikesForEvent(event.getId()));
+                })
+                .collect(Collectors.toList());
+
         return events;
     }
 
@@ -281,8 +316,124 @@ public class EventsServiceImpl implements EventsService {
 
         int views = (int) getEventView(event.getId());
         event.setViews(views);
+        //проставление лайков и дизлайков
+        event.setLikes(getLikesForEvent(event.getId()));
+        event.setLikes(getDislikesForEvent(event.getId()));
 
         return event;
+    }
+
+    @Override
+    public Rating updateRating(UpdateRatingDto dto) {
+
+        //валидация dto - проверка данных в БД
+        ratingUpdateValidator.validateUpdateRating(dto);
+
+        //лайкать можно только опубликованные события
+        Event event = eventsRepository.getReferenceById(dto.getEventId());
+
+        if (!event.getState().equals(State.PUBLISHED)) {
+            throw new ApiError(
+                    HttpStatus.CONFLICT,
+                    "Cannot like events if not PUBLISHED",
+                    "Event with id=" + dto.getEventId() + " is not published"
+            );
+        }
+
+        Rating ratingToSave = new Rating();
+
+        ratingToSave.setEventId(dto.getEventId());
+        ratingToSave.setUserId(dto.getUserId());
+
+        switch (dto.getRating()) {
+            case "LIKE":
+                ratingToSave.setRating(1);
+                break;
+            case "DISLIKE":
+                ratingToSave.setRating(-1);
+                break;
+            case "REMOVE_LIKE", "REMOVE_DISLIKE":
+                //если пользователь хочет удалить лайк или дизлайк, удаляем запись из таблицы
+                Rating existingRating = ratingRepository.findByEventIdAndUserId(dto.getEventId(), dto.getUserId());
+
+                if (existingRating != null) {
+                    //удаляем запись
+                    ratingRepository.delete(existingRating);
+                    //оповещаем пользователя обудалении
+                    throw new ApiError(HttpStatus.NO_CONTENT,
+                            "Rating deleted successfully",
+                            "Rating deleted successfully");
+                } else {
+                    throw new ApiError(
+                            HttpStatus.NOT_FOUND,
+                            "No rating found to delete.",
+                            "User with id=" + dto.getUserId() + " has no rating for event with id=" + dto.getEventId()
+                    );
+                }
+        }
+
+        return ratingRepository.save(ratingToSave);
+    }
+
+    @Override
+    public EventRatingDto getEventRating(long userId, long eventId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ApiError(
+                    HttpStatus.NOT_FOUND,
+                    "User not found.",
+                    "User with id=" + userId + " was not found"
+            );
+        }
+
+        if (!eventsRepository.existsById(eventId)) {
+            throw new ApiError(HttpStatus.NOT_FOUND,
+                    "The required object was not found.",
+                    "Event with id=" + eventId + " was not found");
+        }
+
+        Event event = eventsRepository.getReferenceById(eventId);
+
+        return new EventRatingDto(
+                event.getId(),
+                event.getAnnotation(),
+                ratingRepository.getEventRating(eventId)
+        );
+    }
+
+    @Override
+    public AuthorRatingDto getAuthorRating(long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ApiError(
+                    HttpStatus.NOT_FOUND,
+                    "User not found.",
+                    "User with id=" + userId + " was not found"
+            );
+        }
+
+        User author = userRepository.getReferenceById(userId);
+
+        return new AuthorRatingDto(
+                author.getId(),
+                author.getName(),
+                ratingRepository.getAuthorRating(userId)
+        );
+    }
+
+    @Override
+    public List<EventRatingDto> getSortedEventsRating() {
+        List<Object[]> rawData = ratingRepository.getSortedEventsRating();
+        List<EventRatingDto> eventRatingDtos = new ArrayList<>();
+
+        for (Object[] data : rawData) {
+            long eventId = (long) data[0];
+            String eventAnnotation = (String) data[1];
+            long eventRating = (long) data[2]; // Измените тип на long
+
+            EventRatingDto eventRatingDto = new EventRatingDto(eventId, eventAnnotation, (int) eventRating); // При необходимости преобразуйте long в int
+            eventRatingDtos.add(eventRatingDto);
+        }
+
+        return eventRatingDtos;
     }
 
     public void isUserExists(long id) {
@@ -307,6 +458,14 @@ public class EventsServiceImpl implements EventsService {
                     "The required object was not found.",
                     "Category with id=" + id + " was not found");
         }
+    }
+
+    private int getLikesForEvent(long eventId) {
+        return ratingRepository.getLikesForEvent(eventId);
+    }
+
+    private int getDislikesForEvent(long eventId) {
+        return ratingRepository.getDislikesForEvent(eventId);
     }
 
     private void addHit(String uri, String ip) {

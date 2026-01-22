@@ -14,7 +14,7 @@ import ru.practicum.admin_api.users.UserRepository;
 import ru.practicum.admin_api.users.model.User;
 import ru.practicum.dtos.events.EventRequestStatusUpdateRequest;
 import ru.practicum.dtos.events.EventRequestStatusUpdateResult;
-import ru.practicum.dtos.events.State;
+import ru.practicum.dtos.events.states.State;
 import ru.practicum.dtos.requests.ParticipationRequestDto;
 import ru.practicum.dtos.requests.RequestStatus;
 import ru.practicum.exception.exceptions.ApiError;

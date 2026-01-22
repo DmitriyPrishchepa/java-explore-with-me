@@ -1,7 +1,6 @@
 package ru.practicum.admin_api.events;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dtos.events.SearchEventsDto;
 import ru.practicum.private_api.events.EventsService;

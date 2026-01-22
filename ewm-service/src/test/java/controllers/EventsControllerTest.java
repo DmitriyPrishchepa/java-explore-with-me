@@ -17,7 +17,9 @@ import org.springframework.web.client.RestTemplate;
 import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.events.EventsControllerAdmin;
 import ru.practicum.admin_api.users.model.User;
-import ru.practicum.dtos.events.State;
+import ru.practicum.dtos.events.ratings.Rating;
+import ru.practicum.dtos.events.ratings.UpdateRatingDto;
+import ru.practicum.dtos.events.states.State;
 import ru.practicum.private_api.events.EventsController;
 import ru.practicum.private_api.events.EventsService;
 import ru.practicum.private_api.events.location.Location;
@@ -211,109 +213,6 @@ public class EventsControllerTest {
                 .andExpect(jsonPath("$.title", is(eventDto.getTitle())));
     }
 
-//    @Test
-//    void getEventsFiltered() throws Exception {
-//        Mockito.when(service.searchEventsFiltered(Mockito.any(SearchEventsDtoFiltered.class)))
-//                .thenReturn(List.of(eventDto));
-//
-//
-//        mvc.perform(get("/events")
-//                        .param("text", "Сплав")
-//                        .param("categories", "1")
-//                        .param("paid", "true")
-//                        .param("rangeStart", "2024-01-01")
-//                        .param("rangeEnd", "2024-12-31")
-//                        .param("onlyAvailable", "false")
-//                        .param("sort", "title")
-//                        .param("from", "0")
-//                        .param("size", "10")
-//                        .characterEncoding(StandardCharsets.UTF_8)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.[0].title", is(eventDto.getTitle())));
-//    }
-
-//    @Test
-//    void findEventByIdAndPublished() throws Exception {
-//
-//        Mockito.when(service.getEventByIdAndPublished(Mockito.anyLong()))
-//                .thenReturn(eventDto);
-//
-//        mvc.perform(get("/events/" + 1)
-//                        .characterEncoding(StandardCharsets.UTF_8)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.annotation", is(eventDto.getAnnotation())));
-//    }
-
-    // Создаем моки
-//    EventsClient eventsClient = Mockito.mock(EventsClient.class);
-//    ResponseEntity<Object> responseEntity = Mockito.mock(ResponseEntity.class);
-//
-//    // Настраиваем поведение моков
-//        Mockito.when(eventsClient.getStats(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyBoolean()))
-//                .thenReturn(responseEntity);
-//
-//    ViewStatsResponse response = new ViewStatsResponse();
-//        response.setUri("/events/1");
-//        response.setApp("App");
-//        response.setHits(5);
-//
-//    List<ViewStatsResponse> list = List.of(response);
-//
-//    ResponseEntity<List<ViewStatsResponse>> responseEntityViews = new ResponseEntity<>(list, HttpStatus.OK);
-//
-//        Mockito.when(responseEntity.getBody()).thenReturn(list);
-//
-//        Mockito.when(service.getEventByIdAndPublished(Mockito.anyLong()))
-//                .thenReturn(eventDto);
-//
-//    // Мокируем RestTemplate
-//    RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
-//        Mockito.when(restTemplate.exchange(
-//                Mockito.anyString(),
-//                Mockito.eq(HttpMethod.GET),
-//            Mockito.any(),
-//            Mockito.eq(new ParameterizedTypeReference<List<ViewStatsResponse>>() {
-//    })))
-//            .thenReturn(responseEntityViews);
-//
-//    // Создаем объект HttpServletRequest и задаем необходимые параметры
-//    HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-//        Mockito.when(request.getRemoteAddr()).thenReturn("127.0.0.1"); // Пример настройки IP-адреса
-//        Mockito.when(request.getRequestURI()).thenReturn("/events/1"); // Настройка URI запроса
-//
-
-//    @Test
-//    void eventsSearch() throws Exception {
-//        List<Integer> users = List.of(1);
-//        List<String> states = List.of("PUBLISHED");
-//        List<Integer> categories = List.of(1);
-//        String rangeStart = "2024-01-01 00:00:00";
-//        String rangeEnd = "2024-12-31 23:59:59";
-//        int from = 0;
-//        int size = 10;
-//
-//        Mockito.when(service.searchEvents(Mockito.any(SearchEventsDto.class)))
-//                .thenReturn(List.of(eventDto));
-//
-//        mvc.perform(get("/admin/events")
-//                        .param("users", users.stream().map(String::valueOf).toArray(String[]::new))
-//                        .param("states", states.toArray(new String[0]))
-//                        .param("categories", categories.stream().map(String::valueOf).toArray(String[]::new))
-//                        .param("rangeStart", rangeStart)
-//                        .param("rangeEnd", rangeEnd)
-//                        .param("from", String.valueOf(from))
-//                        .param("size", String.valueOf(size))
-//                        .characterEncoding(StandardCharsets.UTF_8)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$[0].annotation", is(eventDto.getAnnotation())));
-//    }
-
     @Test
     void updateEventAndStatusTest() throws Exception {
         UpdateEventUserRequest request = new UpdateEventUserRequest();
@@ -326,7 +225,6 @@ public class EventsControllerTest {
         when(service.updateEventAndStatus(Mockito.anyLong(), Mockito.any(UpdateEventUserRequest.class)))
                 .thenReturn(eventDto);
 
-        // Выполняем запрос на обновление события
         mvc.perform(patch("/admin/events/" + 1L)
                         .content(mapper.writeValueAsString(request))
                         .characterEncoding(StandardCharsets.UTF_8)
@@ -335,5 +233,27 @@ public class EventsControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title", is(request.getTitle())))
                 .andExpect(jsonPath("$.annotation", is(request.getAnnotation())));
+    }
+
+    @Test
+    void updateRating() throws Exception {
+        Rating ratingToSave = new Rating();
+        ratingToSave.setEventId(1);
+        ratingToSave.setUserId(1);
+        ratingToSave.setRating(1);
+
+        when(service.updateRating(Mockito.any(UpdateRatingDto.class)))
+                .thenReturn(ratingToSave);
+
+        mvc.perform(post("/events/update_rating")
+                        .param("eventId", "1")
+                        .param("userId", "1")
+                        .param("rating", "1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rating", is(ratingToSave.getRating())));
+
     }
 }

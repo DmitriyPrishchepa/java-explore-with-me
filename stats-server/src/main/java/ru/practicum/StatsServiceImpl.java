@@ -3,9 +3,9 @@ package ru.practicum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.dtos.events.EndpointHit;
-import ru.practicum.dtos.events.ViewStats;
-import ru.practicum.dtos.events.ViewStatsResponse;
+import ru.practicum.dtos.events.stats.EndpointHit;
+import ru.practicum.dtos.events.stats.ViewStats;
+import ru.practicum.dtos.events.stats.ViewStatsResponse;
 import ru.practicum.mapper.ViewStatsMapper;
 
 import java.time.LocalDateTime;
