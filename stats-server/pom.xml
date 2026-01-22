@@ -21,90 +21,88 @@
         <dependency>
             <groupId>ru.practicum</groupId>
             <artifactId>dtos</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>ru.practicum</groupId>
-            <artifactId>client</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${dtos.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>ru.practicum</groupId>
-            <artifactId>dtos</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${starter-web.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
+            <version>${lombok.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
+            <version>${httpclient5.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>3.5.3</version>
+            <version>${starter-data-jpa.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test</artifactId>
+            <version>${spring-boot-test.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>5.21.0</version>
+            <version>${mockito-junit-jupiter.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest</artifactId>
+            <version>${hamcrest.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>5.21.0</version>
+            <version>${mockitoc-core.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <version>${starter-test.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
             <scope>runtime</scope>
         </dependency>
 
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <version>${h2.version}</version>
             <scope>runtime</scope>
         </dependency>
+
     </dependencies>
 
     <build>
@@ -112,6 +110,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${maven-plugin.version}</version>
             </plugin>
         </plugins>
     </build>

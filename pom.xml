@@ -3,6 +3,7 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
+
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
@@ -15,7 +16,6 @@
         <module>ewm-service</module>
 		<module>dtos</module>
 		<module>stats-server</module>
-		<module>client</module>
 	</modules>
 
     <groupId>ru.practicum</groupId>
@@ -26,6 +26,23 @@
 	<properties>
 		<java.version>21</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<dtos.version>0.0.1-SNAPSHOT</dtos.version>
+		<stats-server.version>0.0.1-SNAPSHOT</stats-server.version>
+		<starter-web.version>3.3.2</starter-web.version>
+		<lombok.version>1.18.42</lombok.version>
+		<httpclient5.version>5.6</httpclient5.version>
+		<starter-data-jpa.version>3.3.2</starter-data-jpa.version>
+		<spring-boot-test.version>3.3.2</spring-boot-test.version>
+		<junit-jupiter.version>6.1.0-M1</junit-jupiter.version>
+		<mockito-junit-jupiter.version>5.21.0</mockito-junit-jupiter.version>
+		<hamcrest.version>3.0</hamcrest.version>
+		<mockitoc-core.version>5.21.0</mockitoc-core.version>
+		<starter-test.version>3.3.2</starter-test.version>
+		<postgresql.version>42.7.9</postgresql.version>
+		<h2.version>2.4.240</h2.version>
+		<maven-plugin.version>3.3.2</maven-plugin.version>
+		<jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
 	</properties>
 
 	<build>
