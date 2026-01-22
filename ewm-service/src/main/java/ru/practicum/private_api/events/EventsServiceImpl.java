@@ -323,6 +323,7 @@ public class EventsServiceImpl implements EventsService {
         return event;
     }
 
+    @Transactional
     @Override
     public Rating updateRating(UpdateRatingDto dto) {
 
@@ -375,6 +376,7 @@ public class EventsServiceImpl implements EventsService {
         return ratingRepository.save(ratingToSave);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public EventRatingDto getEventRating(long userId, long eventId) {
         if (!userRepository.existsById(userId)) {
@@ -400,6 +402,7 @@ public class EventsServiceImpl implements EventsService {
         );
     }
 
+    @Transactional(readOnly = true)
     @Override
     public AuthorRatingDto getAuthorRating(long userId) {
         if (!userRepository.existsById(userId)) {
@@ -419,6 +422,7 @@ public class EventsServiceImpl implements EventsService {
         );
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<EventRatingDto> getSortedEventsRating() {
         List<Object[]> rawData = ratingRepository.getSortedEventsRating();
