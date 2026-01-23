@@ -1,7 +1,7 @@
 package ru.practicum.private_api.events.model;
 
 import lombok.Data;
-import ru.practicum.dtos.events.StateAction;
+import ru.practicum.dtos.events.states.StateAction;
 import ru.practicum.private_api.events.location.Location;
 
 @Data

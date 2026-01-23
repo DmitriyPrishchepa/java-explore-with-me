@@ -12,8 +12,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import ru.practicum.StatsController;
 import ru.practicum.StatsService;
-import ru.practicum.dtos.events.EndpointHit;
-import ru.practicum.dtos.events.ViewStats;
+import ru.practicum.dtos.events.stats.EndpointHit;
+import ru.practicum.dtos.events.stats.ViewStats;
 import ru.practicum.mapper.ViewStatsMapper;
 
 import java.nio.charset.StandardCharsets;

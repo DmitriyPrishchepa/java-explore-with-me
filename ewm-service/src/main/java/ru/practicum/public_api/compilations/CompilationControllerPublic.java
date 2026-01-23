@@ -2,7 +2,6 @@ package ru.practicum.public_api.compilations;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.admin_api.compilations.CompilationsService;
 import ru.practicum.dtos.compilations.CompilationDto;

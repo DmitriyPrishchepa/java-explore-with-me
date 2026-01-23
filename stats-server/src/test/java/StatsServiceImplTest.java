@@ -9,8 +9,8 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import ru.practicum.StatsRepository;
 import ru.practicum.StatsServiceImpl;
-import ru.practicum.dtos.events.EndpointHit;
-import ru.practicum.dtos.events.ViewStatsResponse;
+import ru.practicum.dtos.events.stats.EndpointHit;
+import ru.practicum.dtos.events.stats.ViewStatsResponse;
 
 import java.util.ArrayList;
 import java.util.List;

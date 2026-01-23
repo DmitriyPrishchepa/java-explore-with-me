@@ -1,4 +1,4 @@
-package ru.practicum.public_api.events;
+package ru.practicum.dtos.events.states;
 
 public enum AvailableValues {
     EVENT_DATE, VIEWS

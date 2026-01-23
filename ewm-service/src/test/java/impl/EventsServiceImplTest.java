@@ -17,28 +17,27 @@ import ru.practicum.admin_api.categories.model.Category;
 import ru.practicum.admin_api.users.UserRepository;
 import ru.practicum.admin_api.users.model.User;
 import ru.practicum.dtos.events.SearchEventsDto;
-import ru.practicum.dtos.events.State;
+import ru.practicum.dtos.events.SearchEventsDtoFiltered;
+import ru.practicum.dtos.events.ratings.Rating;
+import ru.practicum.dtos.events.ratings.UpdateRatingDto;
+import ru.practicum.dtos.events.states.AvailableValues;
+import ru.practicum.dtos.events.states.State;
 import ru.practicum.exception.exceptions.ApiError;
-import ru.practicum.private_api.events.EventsRepository;
-import ru.practicum.private_api.events.EventsService;
-import ru.practicum.private_api.events.EventsServiceImpl;
-import ru.practicum.private_api.events.LocationRepository;
+import ru.practicum.private_api.events.*;
 import ru.practicum.private_api.events.location.Location;
 import ru.practicum.private_api.events.mapper.EventMapper;
 import ru.practicum.private_api.events.model.Event;
 import ru.practicum.private_api.events.model.NewEventDto;
 import ru.practicum.private_api.events.model.UpdateEventUserRequest;
 import ru.practicum.private_api.events.validation.EventUpdater;
+import ru.practicum.private_api.events.validation.RatingUpdateValidator;
 import ru.practicum.private_api.events.validation.UpdateEventValidator;
-import ru.practicum.public_api.events.AvailableValues;
-import ru.practicum.public_api.events.SearchEventsDtoFiltered;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
@@ -50,10 +49,16 @@ public class EventsServiceImplTest {
     EventsRepository eventsRepository;
 
     @Mock
+    RatingUpdateValidator ratingUpdateValidator;
+
+    @Mock
     EventsService service;
 
     @Mock
     EventsClient client;
+
+    @Mock
+    RatingRepository ratingRepository;
 
     @Mock
     LocationRepository locationRepository;
@@ -263,6 +268,12 @@ public class EventsServiceImplTest {
         when(eventsRepository.findByInitiatorIdAndId(anyLong(), anyLong()))
                 .thenReturn(eventDto);
 
+        when(ratingRepository.getLikesForEvent(Mockito.anyLong()))
+                .thenReturn(1);
+
+        when(ratingRepository.getDislikesForEvent(Mockito.anyLong()))
+                .thenReturn(1);
+
         Event event = impl.getEventById(1L, 1L);
 
         assertEquals("Сплав на байдарках", event.getTitle());
@@ -379,39 +390,34 @@ public class EventsServiceImplTest {
         assertEquals("Event 1", events.getFirst().getTitle());
     }
 
-//    @Test
-//    void testUpdateEventAndStatus_SuccessfulUpdate() {
-//        // Подготовка данных
-//        long eventId = 1L;
-//        UpdateEventUserRequest request = new UpdateEventUserRequest();
-//        request.setAnnotation("Updated annotation");
-//        request.setStateAction(StateAction.PUBLISH_EVENT);
-//        request.setEventDate("2024-01-01 00:00:00");
-//        request.setCategory(1);
-//
-//        Category category = new Category();
-//        category.setId(1L);
-//
-//        Event event = new Event();
-//        event.setId(eventId);
-//        event.setAnnotation("Updated annotation");
-//        event.setState(State.PUBLISHED);
-//        event.setCategory(category);
-//        event.setCreatedOn("2023-12-31 00:00:00"); // Инициализация даты создания события
-//
-//        when(eventsRepository.findById(eventId)).thenReturn(Optional.of(event));
-//        when(categoriesRepository.getReferenceById(Mockito.anyLong())).thenReturn(category);
-//        when(eventsRepository.save(Mockito.any(Event.class)))
-//                .thenReturn(event);
-//        when(eventUpdater.updateEvent(
-//                Mockito.any(Event.class),
-//                Mockito.any(Category.class),
-//                Mockito.any(UpdateEventUserRequest.class)))
-//                .thenReturn(event);
-//
-//        Event updatedEvent = impl.updateEventAndStatus(eventId, request);
-//
-//        assertThat(updatedEvent.getAnnotation()).isEqualTo("Updated annotation");
-//        assertThat(updatedEvent.getState()).isEqualTo(State.PUBLISHED);
-//    }
+    @Test
+    void updateRatingTest_Success() {
+        UpdateRatingDto dto = new UpdateRatingDto();
+        dto.setEventId(1L);
+        dto.setUserId(1L);
+        dto.setRating("LIKE");
+
+        Event event = new Event();
+        event.setId(1L);
+        event.setState(State.PUBLISHED);
+
+        when(eventsRepository.getReferenceById(anyLong())).thenReturn(event);
+
+        Rating ratingToSave = new Rating();
+        ratingToSave.setEventId(dto.getEventId());
+        ratingToSave.setUserId(dto.getUserId());
+        ratingToSave.setRating(1);
+
+        when(ratingRepository.save(Mockito.any(Rating.class))).thenReturn(ratingToSave);
+
+        when(ratingRepository.getLikesForEvent(Mockito.anyLong()))
+                .thenReturn(1);
+
+        when(ratingRepository.getDislikesForEvent(Mockito.anyLong()))
+                .thenReturn(1);
+        // Вызываем тестируемый метод
+        Rating updatedRating = impl.updateRating(dto);
+
+        assertNotNull(updatedRating);
+    }
 }

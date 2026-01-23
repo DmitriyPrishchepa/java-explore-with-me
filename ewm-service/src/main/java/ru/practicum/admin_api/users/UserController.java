@@ -1,7 +1,6 @@
 package ru.practicum.admin_api.users;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.admin_api.users.model.NewUserRequest;
 import ru.practicum.dtos.users.UserDto;

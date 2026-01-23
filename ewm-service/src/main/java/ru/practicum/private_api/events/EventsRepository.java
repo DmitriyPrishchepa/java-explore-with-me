@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import ru.practicum.dtos.events.State;
+import ru.practicum.dtos.events.states.State;
 import ru.practicum.private_api.events.model.Event;
 
 import java.util.List;

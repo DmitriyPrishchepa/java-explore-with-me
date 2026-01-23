@@ -8,8 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import ru.practicum.dtos.events.EndpointHit;
-import ru.practicum.dtos.events.ViewStatsResponse;
+import ru.practicum.dtos.events.stats.EndpointHit;
+import ru.practicum.dtos.events.stats.ViewStatsResponse;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

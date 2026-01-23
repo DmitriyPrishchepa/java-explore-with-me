@@ -1,4 +1,4 @@
-package ru.practicum.dtos.events;
+package ru.practicum.dtos.events.stats;
 
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;

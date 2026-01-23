@@ -1,7 +1,10 @@
 package ru.practicum.private_api.requests.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import ru.practicum.dtos.requests.RequestStatus;
 
 @Entity

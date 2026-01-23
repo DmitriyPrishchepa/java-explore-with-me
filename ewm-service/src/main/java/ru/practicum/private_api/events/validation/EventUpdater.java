@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import ru.practicum.admin_api.categories.model.Category;
-import ru.practicum.dtos.events.State;
+import ru.practicum.dtos.events.states.State;
 import ru.practicum.exception.exceptions.ApiError;
 import ru.practicum.private_api.events.LocationRepository;
 import ru.practicum.private_api.events.location.Location;
